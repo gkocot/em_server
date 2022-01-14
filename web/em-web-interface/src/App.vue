@@ -37,6 +37,8 @@
 </template>
 
 <script>
+import { mdiHome, mdiWifiCog, mdiHomeLightningBoltOutline, mdiElectricSwitch, mdiSineWave } from "@mdi/js";
+
 export default {
   name: "App",
 
@@ -45,15 +47,15 @@ export default {
       visible: false,
       selectedItem: 0,
       items: [
-        { text: "Home", icon: "mdi-home", route: "/" },
-        { text: "WiFi", icon: "mdi-wifi-cog", route: "/wifi" },
+        { text: "Home", icon: mdiHome, route: "/" },
+        { text: "WiFi", icon: mdiWifiCog, route: "/wifi" },
         {
           text: "Energy Meter",
-          icon: "mdi-home-lightning-bolt-outline",
+          icon: mdiHomeLightningBoltOutline,
           route: "/em",
         },
-        { text: "IO", icon: "mdi-electric-switch", route: "/io" },
-        { text: "ADC", icon: "mdi-sine-wave", route: "/adc" },
+        { text: "IO", icon: mdiElectricSwitch, route: "/io" },
+        { text: "ADC", icon: mdiSineWave, route: "/adc" },
       ],
     },
   }),
