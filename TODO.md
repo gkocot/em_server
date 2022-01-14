@@ -6,3 +6,6 @@
 - Implement module reset from web interface;
 - Allow updating softAP ssid/password from web interface (and perform module reset to apply new credentials);
 
+- Vuex (state)
+- Vue router
+
