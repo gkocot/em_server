@@ -9,7 +9,11 @@
     <v-navigation-drawer app clipped v-model="drawer.visible">
       <v-list dense>
         <v-list-item-group v-model="drawer.selectedItem" color="primary">
-          <v-list-item v-for="(item, i) in drawer.items" :key="i">
+          <v-list-item
+            v-for="(item, i) in drawer.items"
+            :key="i"
+            :to="item.route"
+          >
             <v-list-item-icon>
               <v-icon v-text="item.icon"></v-icon>
             </v-list-item-icon>
@@ -25,7 +29,6 @@
     <v-main>
       <!-- Provides the application the proper gutter -->
       <v-container fluid>
-        Container
         <!-- If using vue-router -->
         <router-view></router-view>
       </v-container>
@@ -42,11 +45,15 @@ export default {
       visible: false,
       selectedItem: 0,
       items: [
-        { text: "Home", icon: "mdi-home" },
-        { text: "WiFi", icon: "mdi-wifi-cog" },
-        { text: "Energy Meter", icon: "mdi-home-lightning-bolt-outline" },
-        { text: "IO", icon: "mdi-electric-switch" },
-        { text: "ADC", icon: "mdi-sine-wave" },
+        { text: "Home", icon: "mdi-home", route: "/" },
+        { text: "WiFi", icon: "mdi-wifi-cog", route: "/wifi" },
+        {
+          text: "Energy Meter",
+          icon: "mdi-home-lightning-bolt-outline",
+          route: "/em",
+        },
+        { text: "IO", icon: "mdi-electric-switch", route: "/io" },
+        { text: "ADC", icon: "mdi-sine-wave", route: "/adc" },
       ],
     },
   }),
