@@ -37,7 +37,13 @@
 </template>
 
 <script>
-import { mdiHome, mdiWifiCog, mdiHomeLightningBoltOutline, mdiElectricSwitch, mdiSineWave } from "@mdi/js";
+import {
+  mdiHome,
+  mdiWifiCog,
+  mdiHomeLightningBoltOutline,
+  mdiElectricSwitch,
+  mdiSineWave,
+} from "@mdi/js";
 
 export default {
   name: "App",
