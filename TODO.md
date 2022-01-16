@@ -1,5 +1,12 @@
 --------------------------WEB----------------------------
 - Implement module reset from web interface;
+- Place configuration in config.json;
+- Parse config.json using cJSON component;
+- Get configuration when App.vue mounted;
+- Learn Vue state management, pass state information between Vue components;
+- Indicate that cnfiguration was edited (display a message o r a button);
+- Add buttons to save configuration;
+- Add button to reload configuration (restart ESP modeule);
 
 
 --------------------------GENERAL------------------------

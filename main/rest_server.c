@@ -139,6 +139,42 @@ static esp_err_t light_brightness_post_handler(httpd_req_t *req)
 }
 
 /* Simple handler for getting system handler */
+static esp_err_t config_get_handler(httpd_req_t *req)
+{
+    // static bool config_loaded = false;
+
+    // // TBD Critical section.
+    // if (!config_loaded) {
+        // TBD Kconfig for /conf/emconfig.json
+        const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/emconfig.json";
+        ESP_LOGI(REST_TAG, "Opening file %s", file_hello);
+        FILE *f = fopen(file_config, "w");
+        fseek(f, 0, SEEK_END);
+        long fsize = ftell(f);
+        fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+        char *str_config = malloc(fsize + 1);
+        fread(str_config, fsize, 1, f);
+        fclose(f);
+        str_config[fsize] = 0;
+        ESP_LOGI(REST_TAG, "emconfig.json: %s\n", str_config);
+        free(str_config);
+    // }
+
+    httpd_resp_set_type(req, "application/json");
+    // cJSON *root = cJSON_CreateObject();
+    // esp_chip_info_t chip_info;
+    // esp_chip_info(&chip_info);
+    // cJSON_AddStringToObject(root, "version", IDF_VER);
+    // cJSON_AddNumberToObject(root, "cores", chip_info.cores);
+    // const char *sys_info = cJSON_Print(root);
+    // httpd_resp_sendstr(req, sys_info);
+    httpd_resp_sendstr(req, str_config);
+    // free((void *)sys_info);
+    // cJSON_Delete(root);
+    return ESP_OK;
+}
+
+/* Simple handler for getting system handler */
 static esp_err_t system_info_get_handler(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "application/json");
@@ -180,6 +216,15 @@ esp_err_t start_rest_server(const char *base_path)
 
     ESP_LOGI(REST_TAG, "Starting HTTP Server");
     REST_CHECK(httpd_start(&server, &config) == ESP_OK, "Start server failed", err_start);
+
+    /* URI handler for fetching system info */
+    httpd_uri_t config_get_uri = {
+        .uri = "/api/v1/config",
+        .method = HTTP_GET,
+        .handler = config_get_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &config_get_uri);
 
     /* URI handler for fetching system info */
     httpd_uri_t system_info_get_uri = {
