@@ -72,10 +72,16 @@ menu "Example Configuration"
                 Note that only absolute path is acceptable.
     endif
 
-    config EXAMPLE_WEB_MOUNT_POINT
-        string "Website mount point in VFS"
-        default "/www"
+    config EXAMPLE_STORAGE_MOUNT_POINT
+        string "VFS mount point (website and configuration storage)"
+        default "/storage"
         help
-            Specify the mount point in VFS.
+            Specify VFS mount point of SPI Flash or SD card for website and nonvolatile configuration storage.
+
+    config EXAMPLE_WEB_BASE_PATH
+        string "Website base path"
+        default "/storage/www"
+        help
+            Website base path.
 
 endmenu
