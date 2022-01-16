@@ -50,6 +50,12 @@ menu "Example Configuration"
             help
                 Deploy website to SD card.
                 Choose this production mode if the size of website is too large (bigger than 2MB).
+        config EXAMPLE_WEB_DEPLOY_SDSPI
+            depends on IDF_TARGET_ESP32
+            bool "Deploy website to SPI connected SD card"
+            help
+                Deploy website to SPI connected SD card.
+                Choose this production mode if the size of website is too large (bigger than 2MB).
         config EXAMPLE_WEB_DEPLOY_SF
             bool "Deploy website to SPI Nor Flash"
             help

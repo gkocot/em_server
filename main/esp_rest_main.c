@@ -25,6 +25,42 @@
 #if CONFIG_EXAMPLE_WEB_DEPLOY_SD
 #include "driver/sdmmc_host.h"
 #endif
+#if CONFIG_EXAMPLE_WEB_DEPLOY_SDSPI
+#include "driver/spi_common.h"
+#include "driver/sdspi_host.h"
+#endif
+
+// Pin mapping
+#if CONFIG_IDF_TARGET_ESP32
+
+#define PIN_NUM_MISO 2
+#define PIN_NUM_MOSI 15
+#define PIN_NUM_CLK  14
+#define PIN_NUM_CS   13
+
+#elif CONFIG_IDF_TARGET_ESP32S2
+
+// adapted for internal test board ESP-32-S3-USB-OTG-Ev-BOARD_V1.0 (with ESP32-S2-MINI-1 module)
+#define PIN_NUM_MISO 37
+#define PIN_NUM_MOSI 35
+#define PIN_NUM_CLK  36
+#define PIN_NUM_CS   34
+
+#elif CONFIG_IDF_TARGET_ESP32C3
+#define PIN_NUM_MISO 6
+#define PIN_NUM_MOSI 4
+#define PIN_NUM_CLK  5
+#define PIN_NUM_CS   1
+
+#endif //CONFIG_IDF_TARGET_ESP32 || CONFIG_IDF_TARGET_ESP32S2
+
+#if CONFIG_IDF_TARGET_ESP32S2
+#define SPI_DMA_CHAN    host.slot
+#elif CONFIG_IDF_TARGET_ESP32C3
+#define SPI_DMA_CHAN    SPI_DMA_CH_AUTO
+#else
+#define SPI_DMA_CHAN    1
+#endif
 
 #define MDNS_INSTANCE "esp home web server"
 #define EXAMPLE_ESP_WIFI_SSID      CONFIG_ESP_WIFI_SSID
@@ -64,7 +100,7 @@ esp_err_t init_fs(void)
 }
 #endif
 
-// TBD: Probably to be removed
+// TBD: Probably to be removed or change to CONFIG_EXAMPLE_WEB_DEPLOY_SDMMC in config and leave it like it is.
 #if CONFIG_EXAMPLE_WEB_DEPLOY_SD
 esp_err_t init_fs(void)
 {
@@ -93,6 +129,63 @@ esp_err_t init_fs(void)
         }
         return ESP_FAIL;
     }
+    /* print card info if mount successfully */
+    sdmmc_card_print_info(stdout, card);
+    return ESP_OK;
+}
+#endif
+
+#if CONFIG_EXAMPLE_WEB_DEPLOY_SDSPI
+esp_err_t init_fs(void)
+{
+    esp_err_t ret;
+
+    // Use settings defined above to initialize SD card and mount FAT filesystem.
+    // Note: esp_vfs_fat_sdmmc/sdspi_mount is all-in-one convenience functions.
+    // Please check its source code and implement error recovery when developing
+    // production applications.
+    ESP_LOGI(TAG, "Using SPI peripheral");
+
+    sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+    spi_bus_config_t bus_cfg = {
+        .mosi_io_num = PIN_NUM_MOSI,
+        .miso_io_num = PIN_NUM_MISO,
+        .sclk_io_num = PIN_NUM_CLK,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = 4000,
+    };
+    ret = spi_bus_initialize(host.slot, &bus_cfg, SPI_DMA_CHAN);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize bus.");
+        return ESP_FAIL;
+    }
+
+    // This initializes the slot without card detect (CD) and write protect (WP) signals.
+    // Modify slot_config.gpio_cd and slot_config.gpio_wp if your board has these signals.
+    sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
+    slot_config.gpio_cs = PIN_NUM_CS;
+    slot_config.host_id = host.slot;
+
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = true,
+        .max_files = 4,
+        .allocation_unit_size = 16 * 1024
+    };
+
+    sdmmc_card_t *card;
+    ESP_LOGI(TAG, "Mounting filesystem");
+    ret = esp_vfs_fat_sdspi_mount(CONFIG_EXAMPLE_WEB_MOUNT_POINT, &host, &slot_config, &mount_config, &card);
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(TAG, "Failed to mount filesystem.");
+        } else {
+            ESP_LOGE(TAG, "Failed to initialize the card (%s)", esp_err_to_name(ret));
+        }
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "Filesystem mounted");
+
     /* print card info if mount successfully */
     sdmmc_card_print_info(stdout, card);
     return ESP_OK;
