@@ -32,8 +32,10 @@ export default {
     getConfig() {
       this.$ajax
         .get("/api/v1/config")
-        .then((data) => {
-          console.log(data);
+        .then((resp) => {
+          this.wifi_mode = resp.data.wifi.mode;
+          this.wifi_ssid = resp.data.wifi.ssid;
+          this.wifi_password = resp.data.wifi.password;
         })
         .catch((error) => {
           console.log(error);
