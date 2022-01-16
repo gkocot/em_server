@@ -9,10 +9,15 @@ import IO from "./views/IO.vue";
 Vue.use(Router);
 
 export default new Router({
+  mode: "history",
   base: process.env.BASE_URL,
   routes: [
     {
       path: "/",
+      redirect: "/home",
+    },
+    {
+      path: "/home",
       name: "home",
       component: Home,
     },
@@ -35,6 +40,10 @@ export default new Router({
       path: "/io",
       name: "io",
       component: IO,
+    },
+    {
+      path: "*",
+      redirect: "/home",
     },
   ],
 });
