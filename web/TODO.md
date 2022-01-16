@@ -1,0 +1,10 @@
+- Display currently selected configuration page in app-bar (how to communicate between views, use application state?);
+- Mark that cnfiguration changed, display applu/reset button;
+- Read configuration once on startup, pass configuration to other components;
+- Lazy loading views?
+- mDNS prefix to wifi configuration;
+- When AP mode selected, configuration contains unencrypted ssid/pass;
+- When STA mode selected, configuration contains encrypted ssid/pass;
+- Proper use os async functions;
+- npm run serve shall run backend server and read/modify /conf/emconfig.json
+- Express backend for development;
