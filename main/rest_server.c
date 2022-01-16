@@ -143,21 +143,31 @@ static esp_err_t config_get_handler(httpd_req_t *req)
 {
     // static bool config_loaded = false;
 
-    // // TBD Critical section.
     // if (!config_loaded) {
         // TBD Kconfig for /conf/emconfig.json
         const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/emconfig.json";
-        ESP_LOGI(REST_TAG, "Opening file %s", file_hello);
-        FILE *f = fopen(file_config, "w");
-        fseek(f, 0, SEEK_END);
+        // ESP_LOGI(REST_TAG, "Opening file %s", file_config);
+        FILE *f = fopen(file_config, "r+");
+        if (f == NULL) {
+            ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
+            return ESP_FAIL;
+        }
+        int fseek_result = fseek(f, 0, SEEK_END);
+        // ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
+
         long fsize = ftell(f);
-        fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+        // ESP_LOGI(REST_TAG, "emconfig.json (%ld)\n", fsize);
+        
+        fseek_result = fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+        // ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
+
         char *str_config = malloc(fsize + 1);
-        fread(str_config, fsize, 1, f);
+        size_t fread_result = fread(str_config, fsize, 1, f);
+        // ESP_LOGI(REST_TAG, "fread_result: %u\n", fread_result);
+
         fclose(f);
         str_config[fsize] = 0;
-        ESP_LOGI(REST_TAG, "emconfig.json: %s\n", str_config);
-        free(str_config);
+        // ESP_LOGI(REST_TAG, "emconfig.json: %s\n", str_config);
     // }
 
     httpd_resp_set_type(req, "application/json");
@@ -169,6 +179,7 @@ static esp_err_t config_get_handler(httpd_req_t *req)
     // const char *sys_info = cJSON_Print(root);
     // httpd_resp_sendstr(req, sys_info);
     httpd_resp_sendstr(req, str_config);
+    free(str_config);
     // free((void *)sys_info);
     // cJSON_Delete(root);
     return ESP_OK;
