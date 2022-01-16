@@ -1,0 +1,7 @@
+{
+	"wifi": {
+		"mode": 1
+		"ssid": "myssid"
+		"password": "mypassword"
+	}
+}
