@@ -5,6 +5,4 @@
 - mDNS prefix to wifi configuration;
 - When AP mode selected, configuration contains unencrypted ssid/pass;
 - When STA mode selected, configuration contains encrypted ssid/pass;
-- Proper use os async functions;
-- npm run serve shall run backend server and read/modify /conf/emconfig.json
-- Express backend for development;
+- Development API server, read/modify /conf/emconfig.json
