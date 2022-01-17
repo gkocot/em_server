@@ -31,7 +31,7 @@ export default {
   },
   mounted() {
     this.$ajax
-      .get("/api/v1/system/info")
+      .get("/api/v1/system_info")
       .then((data) => {
         this.version = data.data.version;
         this.cores = data.data.cores;
