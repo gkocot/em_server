@@ -13,6 +13,7 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import { mdiEye, mdiEyeOff } from "@mdi/js";
 
 const wifi_modes = [
@@ -36,6 +37,7 @@ export default {
     };
   },
   methods: {
+    ...mapActions(["setTitleAction"]),
     getConfig() {
       this.$ajax
         .get("/api/v1/config")
@@ -51,6 +53,7 @@ export default {
     },
   },
   mounted() {
+    this.setTitleAction("WiFi");
     this.getConfig();
   },
 };

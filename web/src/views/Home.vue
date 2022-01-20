@@ -22,6 +22,8 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
 export default {
   data() {
     return {
@@ -29,7 +31,11 @@ export default {
       cores: null,
     };
   },
+  methods: {
+    ...mapActions(["setTitleAction"]),
+  },
   mounted() {
+    this.setTitleAction("Home");
     this.$ajax
       .get("/api/v1/system_info")
       .then((data) => {

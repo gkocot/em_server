@@ -4,7 +4,7 @@
       <v-app-bar-nav-icon
         @click.stop="drawer.visible = !drawer.visible"
       ></v-app-bar-nav-icon>
-      <v-toolbar-title>Energy Meter</v-toolbar-title>
+      <v-toolbar-title>{{ title }}</v-toolbar-title>
     </v-app-bar>
     <v-navigation-drawer app clipped v-model="drawer.visible">
       <v-list dense>
@@ -44,6 +44,7 @@ import {
   mdiElectricSwitch,
   mdiSineWave,
 } from "@mdi/js";
+import { mapState } from "vuex";
 
 export default {
   name: "App",
@@ -65,5 +66,13 @@ export default {
       ],
     },
   }),
+  computed: {
+    // title() {
+    //   return this.$store.state.title;
+    // },
+    //...mapState({ title: (state) => state.title }),
+    //...mapState({ title: "title" }),
+    ...mapState(["title"]),
+  },
 };
 </script>
