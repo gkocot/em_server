@@ -50,7 +50,7 @@ export default {
 
   data: () => ({
     drawer: {
-      visible: false,
+      visible: null,
       selectedItem: 0,
       items: [
         { text: "Home", icon: mdiHome, route: "/" },
