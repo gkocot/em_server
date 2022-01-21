@@ -8,7 +8,9 @@ const os = require("os");
 //   next();
 // });
 router.get("/config", function (req, res) {
-  res.json({ wifi: { mode: 1, ssid: "myssidd", password: "mypasswordd" } });
+  res.json({
+    wifi: { mode: 1, ssid: "myssidd-api", password: "mypasswordd-api" },
+  });
 });
 
 router.get("/system_info", function (req, res) {

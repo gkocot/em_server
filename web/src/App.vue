@@ -44,34 +44,41 @@ import {
   mdiElectricSwitch,
   mdiSineWave,
 } from "@mdi/js";
-import { mapState } from "vuex";
+import { mapState, mapActions } from "vuex";
 
 export default {
   name: "App",
 
-  data: () => ({
-    drawer: {
-      visible: null,
-      selectedItem: 0,
-      items: [
-        { text: "Home", icon: mdiHome, route: "/" },
-        { text: "WiFi", icon: mdiWifiCog, route: "/wifi" },
-        {
-          text: "Energy Meter",
-          icon: mdiHomeLightningBoltOutline,
-          route: "/em",
-        },
-        { text: "IO", icon: mdiElectricSwitch, route: "/io" },
-        { text: "ADC", icon: mdiSineWave, route: "/adc" },
-      ],
-    },
-  }),
+  data() {
+    return {
+      config: {},
+      drawer: {
+        visible: null,
+        selectedItem: 0,
+        items: [
+          { text: "Home", icon: mdiHome, route: "/" },
+          { text: "WiFi", icon: mdiWifiCog, route: "/wifi" },
+          {
+            text: "Energy Meter",
+            icon: mdiHomeLightningBoltOutline,
+            route: "/em",
+          },
+          { text: "IO", icon: mdiElectricSwitch, route: "/io" },
+          { text: "ADC", icon: mdiSineWave, route: "/adc" },
+        ],
+      },
+    };
+  },
+
+  async mounted() {
+    await this.loadConfig();
+  },
+
+  methods: {
+    ...mapActions(["loadConfig"]),
+  },
+
   computed: {
-    // title() {
-    //   return this.$store.state.title;
-    // },
-    //...mapState({ title: (state) => state.title }),
-    //...mapState({ title: "title" }),
     ...mapState(["title"]),
   },
 };

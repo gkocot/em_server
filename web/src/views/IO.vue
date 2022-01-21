@@ -10,10 +10,10 @@ export default {
     return {};
   },
   methods: {
-    ...mapActions(["setTitleAction"]),
+    ...mapActions(["setTitle"]),
   },
   mounted() {
-    this.setTitleAction("IO");
+    this.setTitle("IO");
   },
 };
 </script>

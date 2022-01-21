@@ -32,10 +32,11 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["setTitleAction"]),
+    ...mapActions(["setTitle"]),
   },
   mounted() {
-    this.setTitleAction("Home");
+    this.setTitle("Home");
+    // TBD Move to store
     this.$ajax
       .get("/api/v1/system_info")
       .then((data) => {
