@@ -69,7 +69,7 @@ export default {
     },
 
     toggleWiFiPasswordVisible() {
-      this.wifiPasswordVisible != this.wifiPasswordVisible;
+      this.wifiPasswordVisible = !this.wifiPasswordVisible;
     },
   },
 
