@@ -41,7 +41,15 @@ export default new Vuex.Store({
       }
     },
 
-    async saveWiFiConfig({ commit }, wifi) {
+    async saveConfig({ state }) {
+      try {
+        await axios.post("/api/v1/config", state.config);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    async saveWiFiState({ commit }, wifi) {
       commit("mutateWifiConfig", wifi);
     },
 

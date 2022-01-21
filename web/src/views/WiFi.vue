@@ -55,12 +55,13 @@ export default {
   },
 
   methods: {
-    ...mapActions(["setTitle", "saveWiFiConfig"]),
+    ...mapActions(["setTitle", "saveWiFiState", "saveConfig"]),
 
     async saveWiFiConfigAndRestart() {
-      await this.saveWiFiConfig(this.wifiSettings);
-      await axios.post("/api/v1/restart");
+      await this.saveWiFiState(this.wifiSettings);
+      await this.saveConfig();
       this.wifiResetRequired = false;
+      await axios.post("/api/v1/restart");
     },
 
     getWiFiPasswordIcon() {
