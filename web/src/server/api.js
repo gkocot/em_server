@@ -13,6 +13,10 @@ router.get("/config", function (req, res) {
   });
 });
 
+router.post("/restart", function (req, res) {
+  res.send("Restarting in 10s ...");
+});
+
 router.get("/system_info", function (req, res) {
   res.json({
     version: `${os.platform()} ${os.release()}`,

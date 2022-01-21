@@ -11,9 +11,13 @@
       v-model="wifiSettings.password"
       :type="wifiPasswordVisible ? 'text' : 'password'"
       :append-icon="getWiFiPasswordIcon()"
-      @click:append="() => (wifiPasswordVisible = !wifiPasswordVisible)"
+      @click:append="toggleWiFiPasswordVisible()"
     ></v-text-field>
-    <v-btn v-if="wifiResetRequired" x-large color="success"
+    <v-btn
+      v-if="wifiResetRequired"
+      x-large
+      color="success"
+      @click="saveWiFiConfigAndRestart()"
       >Apply&amp;Restart</v-btn
     >
   </v-container>
@@ -23,6 +27,7 @@
 import { mapActions, mapGetters } from "vuex";
 import { mdiEye, mdiEyeOff } from "@mdi/js";
 import { cloneDeep, isEqual } from "lodash";
+import axios from "axios";
 
 const wifiModes = [
   { text: "Access Point", value: 1 },
@@ -50,9 +55,20 @@ export default {
   },
 
   methods: {
-    ...mapActions(["setTitle"]),
+    ...mapActions(["setTitle", "saveWiFiConfig"]),
+
+    async saveWiFiConfigAndRestart() {
+      await this.saveWiFiConfig(this.wifiSettings);
+      await axios.post("/api/v1/restart");
+      this.wifiResetRequired = false;
+    },
+
     getWiFiPasswordIcon() {
       return this.wifiPasswordVisible ? mdiEyeOff : mdiEye;
+    },
+
+    toggleWiFiPasswordVisible() {
+      this.wifiPasswordVisible != this.wifiPasswordVisible;
     },
   },
 

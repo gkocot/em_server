@@ -1,6 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import axios from "axios";
+import { cloneDeep } from "lodash";
 
 Vue.use(Vuex);
 
@@ -20,7 +21,10 @@ export default new Vuex.Store({
 
   mutations: {
     mutateConfig(state, config) {
-      state.config = config;
+      state.config = cloneDeep(config);
+    },
+    mutateWifiConfig(state, wifi) {
+      state.config.wifi = cloneDeep(wifi);
     },
     mutateTitle(state, title) {
       state.title = title;
@@ -36,6 +40,11 @@ export default new Vuex.Store({
         console.log(error);
       }
     },
+
+    async saveWiFiConfig({ commit }, wifi) {
+      commit("mutateWifiConfig", wifi);
+    },
+
     setTitle({ commit }, title) {
       commit("mutateTitle", title);
     },
