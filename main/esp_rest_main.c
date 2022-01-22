@@ -22,6 +22,7 @@
 #include "mdns.h"
 #include "lwip/apps/netbiosns.h"
 #include "protocol_examples_common.h"
+#include "cJSON.h"
 #if CONFIG_EXAMPLE_WEB_DEPLOY_SD
 #include "driver/sdmmc_host.h"
 #endif
@@ -71,6 +72,9 @@
 static const char *TAG = "example";
 
 esp_err_t start_rest_server(const char *base_path);
+
+// TBD Separate module
+static cJSON *wifi; // TBD better name
 
 static void initialise_mdns(void)
 {
@@ -253,40 +257,109 @@ void wifi_init_softap(void)
 
     // TBD: Read SSID and PASSWORD from NVS, use defaults only if credentials not present in NVS.
     // TBD: SSID/PASSWORD default values configured in menuconfig
+    // wifi_config_t wifi_config = {
+    //     .ap = {
+    //         .ssid = EXAMPLE_ESP_WIFI_SSID,
+    //         .ssid_len = strlen(EXAMPLE_ESP_WIFI_SSID),
+    //         .channel = EXAMPLE_ESP_WIFI_CHANNEL, // TBD add to configuration
+    //         .password = EXAMPLE_ESP_WIFI_PASS,
+    //         .max_connection = EXAMPLE_MAX_STA_CONN,  // TBD add to configuration
+    //         .authmode = WIFI_AUTH_WPA_WPA2_PSK  // TBD add to configuration
+    //     },
+    // };
+    char * wifi_ssid = cJSON_GetObjectItem(wifi, "ssid")->valuestring;
+    int wifi_ssid_len = strlen(wifi_ssid);
+    char * wifi_password = cJSON_GetObjectItem(wifi, "password")->valuestring;
+    int wifi_password_len = strlen(wifi_ssid);
     wifi_config_t wifi_config = {
         .ap = {
-            .ssid = EXAMPLE_ESP_WIFI_SSID,
-            .ssid_len = strlen(EXAMPLE_ESP_WIFI_SSID),
-            .channel = EXAMPLE_ESP_WIFI_CHANNEL,
-            .password = EXAMPLE_ESP_WIFI_PASS,
-            .max_connection = EXAMPLE_MAX_STA_CONN,
-            .authmode = WIFI_AUTH_WPA_WPA2_PSK
+            .ssid_len = wifi_ssid_len,
+            .channel = EXAMPLE_ESP_WIFI_CHANNEL, // TBD add to configuration
+            .max_connection = EXAMPLE_MAX_STA_CONN,  // TBD add to configuration
+            .authmode = WIFI_AUTH_WPA_WPA2_PSK  // TBD add to configuration
         },
     };
-    if (strlen(EXAMPLE_ESP_WIFI_PASS) == 0) {
+    strncpy((char *)wifi_config.ap.ssid, wifi_ssid, 32);
+    wifi_config.ap.ssid_len = wifi_ssid_len;
+    strncpy((char *)wifi_config.ap.password, wifi_password, 64);
+
+    // if (strlen(EXAMPLE_ESP_WIFI_PASS) == 0) {
+    if (wifi_password_len == 0) {
         wifi_config.ap.authmode = WIFI_AUTH_OPEN;
     }
 
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+    int wifi_mode = cJSON_GetObjectItem(wifi, "mode")->valueint;
+    ESP_ERROR_CHECK(esp_wifi_set_mode(wifi_mode));
+    switch (wifi_mode) {
+        case WIFI_MODE_AP:
+        ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+        break;
+        case WIFI_MODE_STA:
+        ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+        break;
+    }
+    // ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
 
+    // ESP_LOGI(TAG, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
+    //          EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS, EXAMPLE_ESP_WIFI_CHANNEL);
     ESP_LOGI(TAG, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
-             EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS, EXAMPLE_ESP_WIFI_CHANNEL);
+        cJSON_GetObjectItem(wifi, "ssid")->valuestring,
+        cJSON_GetObjectItem(wifi, "password")->valuestring,
+        EXAMPLE_ESP_WIFI_CHANNEL);
+}
+
+static esp_err_t load_config()
+{
+    const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/emconfig.json";
+    ESP_LOGI(TAG, "Opening file %s", file_config);
+    FILE *f = fopen(file_config, "r");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open %s\n", file_config);
+        return ESP_FAIL;
+    }
+    int fseek_result = fseek(f, 0, SEEK_END);
+    ESP_LOGI(TAG, "fseek_result: %d\n", fseek_result);
+
+    long fsize = ftell(f);
+    ESP_LOGI(TAG, "emconfig.json (%ld)\n", fsize);
+    
+    fseek_result = fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+    ESP_LOGI(TAG, "fseek_result: %d\n", fseek_result);
+
+    char *str_config = malloc(fsize + 1);
+    size_t fread_result = fread(str_config, fsize, 1, f);
+    ESP_LOGI(TAG, "fread_result: %u\n", fread_result);
+
+    fclose(f);
+    str_config[fsize] = 0;
+    ESP_LOGI(TAG, "emconfig.json: %s\n", str_config);
+
+    // TBD Error checking.
+    wifi = cJSON_GetObjectItem(cJSON_Parse(str_config), "wifi");
+    // int red = cJSON_GetObjectItem(root, "red")->valueint;
+    // int green = cJSON_GetObjectItem(root, "green")->valueint;
+    // int blue = cJSON_GetObjectItem(root, "blue")->valueint;
+    // ESP_LOGI(TAG, "Light control: red = %d, green = %d, blue = %d", red, green, blue);
+    // cJSON_Delete(root);
+
+    free(str_config);
+    return ESP_OK;
 }
 
 void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(init_fs());
+    ESP_ERROR_CHECK(load_config());
+    // TBD In the example_connect() there is waiting for IP addresses, see on_got_ip(), do we need that?
+    // ESP_ERROR_CHECK(example_connect());
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     initialise_mdns();
     netbiosns_init();
     netbiosns_set_name(CONFIG_EXAMPLE_MDNS_HOST_NAME);
-
-    // TBD In the example_connect() there is waiting for IP addresses, see on_got_ip(), do we need that?
-    // ESP_ERROR_CHECK(example_connect());
     wifi_init_softap();
-    ESP_ERROR_CHECK(init_fs());
     ESP_ERROR_CHECK(start_rest_server(CONFIG_EXAMPLE_WEB_BASE_PATH));
 }
