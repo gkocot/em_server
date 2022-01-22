@@ -12,7 +12,7 @@ export default new Vuex.Store({
     title: "Home",
     config: {
       wifi: {
-        mode: 1,
+        mode: 2,
         ssid: "myssid",
         password: "mypassword",
       },

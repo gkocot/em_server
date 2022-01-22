@@ -30,8 +30,8 @@ import { cloneDeep, isEqual } from "lodash";
 import axios from "axios";
 
 const wifiModes = [
-  { text: "Access Point", value: 1 },
-  { text: "Station", value: 2 },
+  { text: "Access Point", value: 2 },
+  { text: "Station", value: 1 },
 ];
 
 export default {
