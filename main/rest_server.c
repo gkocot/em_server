@@ -212,6 +212,7 @@ static esp_err_t config_post_handler(httpd_req_t *req)
     FILE *f = fopen(file_config, "w");
     if (f == NULL) {
         ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
+        // TBD there is dedicated function to send error 500 with no message.
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save configuration");
         return ESP_FAIL;
     }
@@ -233,6 +234,13 @@ static esp_err_t config_post_handler(httpd_req_t *req)
     // cJSON_Delete(root);
     fclose(f);
     httpd_resp_sendstr(req, "Configuration saved.");
+    return ESP_OK;
+}
+
+static esp_err_t restart_post_handler(httpd_req_t *req)
+{
+    httpd_resp_sendstr(req, "Restarting.");
+    esp_restart();
     return ESP_OK;
 }
 
@@ -294,6 +302,14 @@ esp_err_t start_rest_server(const char *base_path)
         .user_ctx = rest_context
     };
     httpd_register_uri_handler(server, &config_post_uri);
+
+    httpd_uri_t restart_post_uri = {
+        .uri = "/api/v1/restart",
+        .method = HTTP_POST,
+        .handler = restart_post_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &restart_post_uri);
 
     httpd_uri_t system_info_get_uri = {
         .uri = "/api/v1/system_info",
