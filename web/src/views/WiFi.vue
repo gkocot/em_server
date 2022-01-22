@@ -3,7 +3,7 @@
     <v-select
       label="Mode"
       v-model="wifiSettings.mode"
-      :items="wifiModes"
+      :items="wifiSettings.wifiModes"
     ></v-select>
     <v-text-field label="SSID" v-model="wifiSettings.ssid"></v-text-field>
     <v-text-field
@@ -29,15 +29,9 @@ import { mdiEye, mdiEyeOff } from "@mdi/js";
 import { cloneDeep, isEqual } from "lodash";
 import axios from "axios";
 
-const wifiModes = [
-  { text: "Access Point", value: 2 },
-  { text: "Station", value: 1 },
-];
-
 export default {
   data() {
     return {
-      wifiModes,
       wifiResetRequired: false,
       wifiPasswordVisible: false,
       wifiPasswordIcon: mdiEye,

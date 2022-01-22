@@ -4,9 +4,7 @@ const os = require("os");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-let config = {
-  wifi: { mode: 1, ssid: "myssidd-server", password: "mypasswordd-server" },
-};
+let config = require("../../../conf/emconfig.json");
 
 // middleware that is specific to this router
 // router.use(function timeLog(req, res, next) {
@@ -15,7 +13,7 @@ let config = {
 // });
 router.get("/config", async function (req, res) {
   console.log("start GET /config");
-  await sleep(10000);
+  await sleep(3000);
   console.log("finish GET /config");
   res.json(config);
 });

@@ -40,6 +40,7 @@
 import {
   mdiHome,
   mdiWifiCog,
+  mdiLan,
   mdiHomeLightningBoltOutline,
   mdiElectricSwitch,
   mdiSineWave,
@@ -58,6 +59,7 @@ export default {
         items: [
           { text: "Home", icon: mdiHome, route: "/" },
           { text: "WiFi", icon: mdiWifiCog, route: "/wifi" },
+          { text: "Modbus", icon: mdiLan, route: "/modbus" },
           {
             text: "Energy Meter",
             icon: mdiHomeLightningBoltOutline,

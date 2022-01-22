@@ -2,6 +2,7 @@ import Vue from "vue";
 import Router from "vue-router";
 import Home from "./views/Home.vue";
 import WiFi from "./views/WiFi.vue";
+import Modbus from "./views/Modbus.vue";
 import EMSettings from "./views/EMSettings.vue";
 import ADC from "./views/ADC.vue";
 import IO from "./views/IO.vue";
@@ -25,6 +26,11 @@ export default new Router({
       path: "/wifi",
       name: "wifi",
       component: WiFi,
+    },
+    {
+      path: "/modbus",
+      name: "modbus",
+      component: Modbus,
     },
     {
       path: "/em",
