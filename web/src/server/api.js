@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const os = require("os");
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 let config = {
   wifi: { mode: 1, ssid: "myssidd-server", password: "mypasswordd-server" },
 };
@@ -11,8 +13,10 @@ let config = {
 //   console.log("Time: ", Date.now());
 //   next();
 // });
-router.get("/config", function (req, res) {
-  console.log("GET /config");
+router.get("/config", async function (req, res) {
+  console.log("start GET /config");
+  await sleep(10000);
+  console.log("finish GET /config");
   res.json(config);
 });
 
