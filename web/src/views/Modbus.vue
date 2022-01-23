@@ -15,14 +15,6 @@
       <v-col><v-text-field v-model="device.address"></v-text-field></v-col>
     </v-row>
 
-    <!-- <v-text-field label="SSID" v-model="wifiSettings.ssid"></v-text-field>
-    <v-text-field
-      label="Password"
-      v-model="wifiSettings.password"
-      :type="wifiPasswordVisible ? 'text' : 'password'"
-      :append-icon="getWiFiPasswordIcon()"
-      @click:append="toggleWiFiPasswordVisible()"
-    ></v-text-field> -->
     <v-btn
       v-if="modbusSettingsDirty"
       x-large
@@ -35,16 +27,12 @@
 
 <script>
 import { mapActions, mapGetters } from "vuex";
-// import { mdiEye, mdiEyeOff } from "@mdi/js";
 import { cloneDeep, isEqual } from "lodash";
-// import axios from "axios";
 
 export default {
   data() {
     return {
       modbusSettingsDirty: false,
-      // wifiPasswordVisible: false,
-      // wifiPasswordIcon: mdiEye,
       modbusSettings: {},
     };
   },
@@ -59,23 +47,14 @@ export default {
   },
 
   methods: {
-    // ...mapActions(["setTitle", "saveWiFiState", "saveConfig"]),
+    ...mapActions(["setTitle", "saveModbusState", "saveModbus"]),
     ...mapActions(["setTitle"]),
 
-    // async saveWiFiConfigAndRestart() {
-    //   await this.saveWiFiState(this.wifiSettings);
-    //   await this.saveConfig();
-    //   this.wifiResetRequired = false;
-    //   await axios.post("/api/v1/restart");
-    // },
-
-    // getWiFiPasswordIcon() {
-    //   return this.wifiPasswordVisible ? mdiEyeOff : mdiEye;
-    // },
-
-    // toggleWiFiPasswordVisible() {
-    //   this.wifiPasswordVisible = !this.wifiPasswordVisible;
-    // },
+    async applyModbusConfig() {
+      await this.saveModbusState(this.modbusSettings);
+      await this.saveModbus();
+      this.modbusSettingsDirty = false;
+    },
   },
 
   computed: {

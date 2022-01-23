@@ -6,7 +6,7 @@
       ></v-app-bar-nav-icon>
       <v-toolbar-title>{{ title }}</v-toolbar-title>
       <div style="flex-grow:1"></div>
-      <div><img src="./assets/emlogo.svg" height="40" style="max-height: 100%"/></div>
+      <img src="./assets/emlogo.svg" style="height:100%;padding:10px 0px" />
     </v-app-bar>
     <v-navigation-drawer app clipped v-model="drawer.visible">
       <v-list dense>

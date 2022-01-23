@@ -26,6 +26,9 @@ export default new Vuex.Store({
     mutateWifiConfig(state, wifi) {
       state.config.wifi = cloneDeep(wifi);
     },
+    mutateModbusConfig(state, modbus) {
+      state.config.modbus = cloneDeep(modbus);
+    },
     mutateTitle(state, title) {
       state.title = title;
     },
@@ -49,8 +52,20 @@ export default new Vuex.Store({
       }
     },
 
+    async saveModbus({ state }) {
+      try {
+        await axios.post("/api/v1/modbus", state.config.modbus);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
     async saveWiFiState({ commit }, wifi) {
       commit("mutateWifiConfig", wifi);
+    },
+
+    async saveModbusState({ commit }, modbus) {
+      commit("mutateModbusConfig", modbus);
     },
 
     setTitle({ commit }, title) {

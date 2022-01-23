@@ -1,27 +1,47 @@
 const express = require("express");
 const router = express.Router();
 const os = require("os");
+const fs = require("fs").promises;
+const configFilePath = "../../../conf/emconfig.json";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-let config = require("../../../conf/emconfig.json");
+let config = require(configFilePath);
+
+async function flushConfig() {
+  try {
+    await fs.writeFile(configFilePath, config);
+  }
+  catch (err) {
+    console.log(err);
+  }
+}
 
 // middleware that is specific to this router
 // router.use(function timeLog(req, res, next) {
 //   console.log("Time: ", Date.now());
 //   next();
 // });
+
 router.get("/config", async function (req, res) {
-  console.log("start GET /config");
+  console.log("GET /config");
   await sleep(10000);
-  console.log("finish GET /config");
   res.json(config);
 });
 
-router.post("/config", function (req, res) {
+router.post("/config", async function (req, res) {
   console.log("POST /config");
   console.log(JSON.stringify(req.body));
-  config = req.body;
+  config = req.body; // TBD: cloneDeep?
+  await flushConfig();
+  res.sendStatus(204);
+});
+
+router.post("/modbus", async function (req, res) {
+  console.log("POST /modbus");
+  console.log(JSON.stringify(req.body));
+  config.modbus = req.body; // TBD: cloneDeep?
+  await flushConfig();
   res.sendStatus(204);
 });
 

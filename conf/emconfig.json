@@ -32,6 +32,10 @@
 			{
 				"name": "device3",
 				"address": "1236"
+			},
+			{
+				"name": "device4",
+				"address": "1237"
 			}
 		]
 	}
