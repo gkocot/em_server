@@ -106,7 +106,86 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req)
 }
 
 /* Simple handler for light brightness control */
-static esp_err_t light_brightness_post_handler(httpd_req_t *req)
+// static esp_err_t light_brightness_post_handler(httpd_req_t *req)
+// {
+//     int total_len = req->content_len;
+//     int cur_len = 0;
+//     char *buf = ((rest_server_context_t *)(req->user_ctx))->scratch;
+//     int received = 0;
+//     if (total_len >= SCRATCH_BUFSIZE) {
+//         /* Respond with 500 Internal Server Error */
+//         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "content too long");
+//         return ESP_FAIL;
+//     }
+//     while (cur_len < total_len) {
+//         received = httpd_req_recv(req, buf + cur_len, total_len);
+//         if (received <= 0) {
+//             /* Respond with 500 Internal Server Error */
+//             httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
+//             return ESP_FAIL;
+//         }
+//         cur_len += received;
+//     }
+//     buf[total_len] = '\0';
+
+//     cJSON *root = cJSON_Parse(buf);
+//     int red = cJSON_GetObjectItem(root, "red")->valueint;
+//     int green = cJSON_GetObjectItem(root, "green")->valueint;
+//     int blue = cJSON_GetObjectItem(root, "blue")->valueint;
+//     ESP_LOGI(REST_TAG, "Light control: red = %d, green = %d, blue = %d", red, green, blue);
+//     cJSON_Delete(root);
+//     httpd_resp_sendstr(req, "Post control value successfully");
+//     return ESP_OK;
+// }
+
+static esp_err_t config_get_handler(httpd_req_t *req)
+{
+    // static bool config_loaded = false;
+
+    // if (!config_loaded) {
+        // TBD Kconfig for /conf/emconfig.json
+        const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/emconfig.json";
+        ESP_LOGI(REST_TAG, "Opening file %s", file_config);
+        FILE *f = fopen(file_config, "r");
+        if (f == NULL) {
+            ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
+            return ESP_FAIL;
+        }
+        int fseek_result = fseek(f, 0, SEEK_END);
+        ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
+
+        long fsize = ftell(f);
+        ESP_LOGI(REST_TAG, "emconfig.json (%ld)\n", fsize);
+        
+        fseek_result = fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+        ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
+
+        char *str_config = malloc(fsize + 1);
+        size_t fread_result = fread(str_config, fsize, 1, f);
+        ESP_LOGI(REST_TAG, "fread_result: %u\n", fread_result);
+
+        fclose(f);
+        str_config[fsize] = 0;
+        ESP_LOGI(REST_TAG, "emconfig.json: %s\n", str_config);
+    // }
+
+    httpd_resp_set_type(req, "application/json");
+    // cJSON *root = cJSON_CreateObject();
+    // esp_chip_info_t chip_info;
+    // esp_chip_info(&chip_info);
+    // cJSON_AddStringToObject(root, "version", IDF_VER);
+    // cJSON_AddNumberToObject(root, "cores", chip_info.cores);
+    // const char *sys_info = cJSON_Print(root);
+    // httpd_resp_sendstr(req, sys_info);
+    esp_err_t r = httpd_resp_sendstr(req, str_config);
+    ESP_LOGI(REST_TAG, "config_get_handler %d: %d\n", __LINE__, r);
+    free(str_config);
+    // free((void *)sys_info);
+    // cJSON_Delete(root);
+    return ESP_OK;
+}
+
+static esp_err_t config_post_handler(httpd_req_t *req)
 {
     int total_len = req->content_len;
     int cur_len = 0;
@@ -128,60 +207,40 @@ static esp_err_t light_brightness_post_handler(httpd_req_t *req)
     }
     buf[total_len] = '\0';
 
-    cJSON *root = cJSON_Parse(buf);
-    int red = cJSON_GetObjectItem(root, "red")->valueint;
-    int green = cJSON_GetObjectItem(root, "green")->valueint;
-    int blue = cJSON_GetObjectItem(root, "blue")->valueint;
-    ESP_LOGI(REST_TAG, "Light control: red = %d, green = %d, blue = %d", red, green, blue);
-    cJSON_Delete(root);
-    httpd_resp_sendstr(req, "Post control value successfully");
+    // TBD Functions to read/write config in separate module
+    const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/emconfig.json";
+    FILE *f = fopen(file_config, "w");
+    if (f == NULL) {
+        ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
+        // TBD there is dedicated function to send error 500 with no message.
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save configuration");
+        return ESP_FAIL;
+    }
+
+    size_t fwrite_result = fwrite(buf, total_len, 1, f);
+    if (fwrite_result != 1) {
+        // ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
+        fclose(f);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save configuration");
+        return ESP_FAIL;
+    }
+
+    // TBD Remove.
+    // cJSON *root = cJSON_Parse(buf);
+    // int red = cJSON_GetObjectItem(root, "red")->valueint;
+    // int green = cJSON_GetObjectItem(root, "green")->valueint;
+    // int blue = cJSON_GetObjectItem(root, "blue")->valueint;
+    // ESP_LOGI(REST_TAG, "Light control: red = %d, green = %d, blue = %d", red, green, blue);
+    // cJSON_Delete(root);
+    fclose(f);
+    httpd_resp_sendstr(req, "Configuration saved.");
     return ESP_OK;
 }
 
-/* Simple handler for getting system handler */
-static esp_err_t config_get_handler(httpd_req_t *req)
+static esp_err_t restart_post_handler(httpd_req_t *req)
 {
-    // static bool config_loaded = false;
-
-    // if (!config_loaded) {
-        // TBD Kconfig for /conf/emconfig.json
-        const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/emconfig.json";
-        // ESP_LOGI(REST_TAG, "Opening file %s", file_config);
-        FILE *f = fopen(file_config, "r+");
-        if (f == NULL) {
-            ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
-            return ESP_FAIL;
-        }
-        int fseek_result = fseek(f, 0, SEEK_END);
-        // ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
-
-        long fsize = ftell(f);
-        // ESP_LOGI(REST_TAG, "emconfig.json (%ld)\n", fsize);
-        
-        fseek_result = fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
-        // ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
-
-        char *str_config = malloc(fsize + 1);
-        size_t fread_result = fread(str_config, fsize, 1, f);
-        // ESP_LOGI(REST_TAG, "fread_result: %u\n", fread_result);
-
-        fclose(f);
-        str_config[fsize] = 0;
-        // ESP_LOGI(REST_TAG, "emconfig.json: %s\n", str_config);
-    // }
-
-    httpd_resp_set_type(req, "application/json");
-    // cJSON *root = cJSON_CreateObject();
-    // esp_chip_info_t chip_info;
-    // esp_chip_info(&chip_info);
-    // cJSON_AddStringToObject(root, "version", IDF_VER);
-    // cJSON_AddNumberToObject(root, "cores", chip_info.cores);
-    // const char *sys_info = cJSON_Print(root);
-    // httpd_resp_sendstr(req, sys_info);
-    httpd_resp_sendstr(req, str_config);
-    free(str_config);
-    // free((void *)sys_info);
-    // cJSON_Delete(root);
+    httpd_resp_sendstr(req, "Restarting.");
+    esp_restart();
     return ESP_OK;
 }
 
@@ -202,17 +261,17 @@ static esp_err_t system_info_get_handler(httpd_req_t *req)
 }
 
 /* Simple handler for getting temperature data */
-static esp_err_t temperature_data_get_handler(httpd_req_t *req)
-{
-    httpd_resp_set_type(req, "application/json");
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddNumberToObject(root, "raw", esp_random() % 20);
-    const char *sys_info = cJSON_Print(root);
-    httpd_resp_sendstr(req, sys_info);
-    free((void *)sys_info);
-    cJSON_Delete(root);
-    return ESP_OK;
-}
+// static esp_err_t temperature_data_get_handler(httpd_req_t *req)
+// {
+//     httpd_resp_set_type(req, "application/json");
+//     cJSON *root = cJSON_CreateObject();
+//     cJSON_AddNumberToObject(root, "raw", esp_random() % 20);
+//     const char *sys_info = cJSON_Print(root);
+//     httpd_resp_sendstr(req, sys_info);
+//     free((void *)sys_info);
+//     cJSON_Delete(root);
+//     return ESP_OK;
+// }
 
 esp_err_t start_rest_server(const char *base_path)
 {
@@ -228,7 +287,6 @@ esp_err_t start_rest_server(const char *base_path)
     ESP_LOGI(REST_TAG, "Starting HTTP Server");
     REST_CHECK(httpd_start(&server, &config) == ESP_OK, "Start server failed", err_start);
 
-    /* URI handler for fetching system info */
     httpd_uri_t config_get_uri = {
         .uri = "/api/v1/config",
         .method = HTTP_GET,
@@ -237,32 +295,49 @@ esp_err_t start_rest_server(const char *base_path)
     };
     httpd_register_uri_handler(server, &config_get_uri);
 
-    /* URI handler for fetching system info */
+    httpd_uri_t config_post_uri = {
+        .uri = "/api/v1/config",
+        .method = HTTP_POST,
+        .handler = config_post_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &config_post_uri);
+
+    httpd_uri_t restart_post_uri = {
+        .uri = "/api/v1/restart",
+        .method = HTTP_POST,
+        .handler = restart_post_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &restart_post_uri);
+
     httpd_uri_t system_info_get_uri = {
-        .uri = "/api/v1/system/info",
+        .uri = "/api/v1/system_info",
         .method = HTTP_GET,
         .handler = system_info_get_handler,
         .user_ctx = rest_context
     };
     httpd_register_uri_handler(server, &system_info_get_uri);
 
+    // TBD Remove
     /* URI handler for fetching temperature data */
-    httpd_uri_t temperature_data_get_uri = {
-        .uri = "/api/v1/temp/raw",
-        .method = HTTP_GET,
-        .handler = temperature_data_get_handler,
-        .user_ctx = rest_context
-    };
-    httpd_register_uri_handler(server, &temperature_data_get_uri);
+    // httpd_uri_t temperature_data_get_uri = {
+    //     .uri = "/api/v1/temp/raw",
+    //     .method = HTTP_GET,
+    //     .handler = temperature_data_get_handler,
+    //     .user_ctx = rest_context
+    // };
+    // httpd_register_uri_handler(server, &temperature_data_get_uri);
 
+    // TBD Remove
     /* URI handler for light brightness control */
-    httpd_uri_t light_brightness_post_uri = {
-        .uri = "/api/v1/light/brightness",
-        .method = HTTP_POST,
-        .handler = light_brightness_post_handler,
-        .user_ctx = rest_context
-    };
-    httpd_register_uri_handler(server, &light_brightness_post_uri);
+    // httpd_uri_t light_brightness_post_uri = {
+    //     .uri = "/api/v1/light/brightness",
+    //     .method = HTTP_POST,
+    //     .handler = light_brightness_post_handler,
+    //     .user_ctx = rest_context
+    // };
+    // httpd_register_uri_handler(server, &light_brightness_post_uri);
 
     /* URI handler for getting web server files */
     httpd_uri_t common_get_uri = {

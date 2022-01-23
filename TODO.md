@@ -10,6 +10,7 @@
 
 
 --------------------------GENERAL------------------------
+- WiFi password shorter than 8 characters 'bricks' the module?!
 - No mDNS on Android Chrome (that makes poor UX if someon is using smartphone for accessing the configuration server, you have to type IP http://192.168.4.1/ instead of http://em.local) https://android.stackexchange.com/questions/49188/how-to-get-mdns-working-for-chrome-on-android;
 - In the example_connect() there is waiting for IP addresses, see on_got_ip(), do we need that?
 - On start read softAP ssid/password from NVS, use defaults if not present;
