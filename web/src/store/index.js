@@ -62,5 +62,8 @@ export default new Vuex.Store({
     wifiConfig: (state) => {
       return state.config.wifi;
     },
+    modbusConfig: (state) => {
+      return state.config.modbus;
+    },
   },
 });

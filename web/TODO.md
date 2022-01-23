@@ -1,3 +1,8 @@
+- Display configuration loading view when executing GET /api/v1/config;
+- Separate endpoint to only apply changes for modbus or wifi (don't send the whole configuration),
+  it is OK to read whole configuration in one API call;
+- Fields validation, allow only 4 HEX characters in address field;
+
 - Modbus/RS485 Settings page;
 - Displaying charts;
 - Tools to creat e mockups/designs;
@@ -7,6 +12,9 @@
 - Library for drawing charts (Vue/JavaScript);
 - RS485 Settings
 - Websocket connection for live data transmission?
+- Check Vuetify examples of using v-text-field password with icnos, do we show/hide password properly?
+- Localization, and AppSettings;
+- Cnfiguration received/send in one API call (whole configuration at once) can be a problem as the configuration grows;
 
 - Websocket connection for live data;
 - Lazy loading views?

@@ -14,11 +14,11 @@
       @click:append="toggleWiFiPasswordVisible()"
     ></v-text-field>
     <v-btn
-      v-if="wifiResetRequired"
+      v-if="wifiSettingsDirty"
       x-large
       color="success"
       @click="saveWiFiConfigAndRestart()"
-      >Apply&amp;Restart</v-btn
+      >Apply</v-btn
     >
   </v-container>
 </template>
@@ -32,7 +32,7 @@ import axios from "axios";
 export default {
   data() {
     return {
-      wifiResetRequired: false,
+      wifiSettingsDirty: false,
       wifiPasswordVisible: false,
       wifiPasswordIcon: mdiEye,
       wifiSettings: {},
@@ -45,7 +45,7 @@ export default {
   },
 
   updated() {
-    this.wifiResetRequired = !isEqual(this.wifiConfig, this.wifiSettings);
+    this.wifiSettingsDirty = !isEqual(this.wifiConfig, this.wifiSettings);
   },
 
   methods: {
@@ -54,7 +54,7 @@ export default {
     async saveWiFiConfigAndRestart() {
       await this.saveWiFiState(this.wifiSettings);
       await this.saveConfig();
-      this.wifiResetRequired = false;
+      this.wifiSettingsDirty = false;
       await axios.post("/api/v1/restart");
     },
 
