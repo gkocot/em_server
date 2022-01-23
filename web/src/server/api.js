@@ -13,7 +13,7 @@ let config = require("../../../conf/emconfig.json");
 // });
 router.get("/config", async function (req, res) {
   console.log("start GET /config");
-  await sleep(3000);
+  await sleep(10000);
   console.log("finish GET /config");
   res.json(config);
 });

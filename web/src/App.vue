@@ -5,6 +5,8 @@
         @click.stop="drawer.visible = !drawer.visible"
       ></v-app-bar-nav-icon>
       <v-toolbar-title>{{ title }}</v-toolbar-title>
+      <div style="flex-grow:1"></div>
+      <div><img src="./assets/emlogo.svg" height="40" style="max-height: 100%"/></div>
     </v-app-bar>
     <v-navigation-drawer app clipped v-model="drawer.visible">
       <v-list dense>
@@ -29,10 +31,24 @@
     <v-main>
       <!-- Provides the application the proper gutter -->
       <v-container fluid>
-        <!-- If using vue-router -->
-        <router-view></router-view>
+        <router-view v-if="isConfigLoaded"></router-view>
+        <div v-else class="text-center">
+          <div class="pa-16">
+            <v-progress-circular
+              :size="150"
+              color="red"
+              indeterminate
+            ></v-progress-circular>
+          </div>
+          <span class="grey--text">Loading configuration...</span>
+        </div>
       </v-container>
     </v-main>
+    <!-- <div style="display:flex;background-color:rgb(245,245,245)">
+      <div style="flex-grow:1"></div>
+      <img src="./assets/emlogo.svg" height="50" style="max-height: 100%"/>
+      <div style="flex-grow:1"></div>
+    </div> -->
   </v-app>
 </template>
 
@@ -52,6 +68,7 @@ export default {
 
   data() {
     return {
+      isConfigLoaded: false,
       config: {},
       drawer: {
         visible: null,
@@ -74,6 +91,7 @@ export default {
 
   async mounted() {
     await this.loadConfig();
+    this.isConfigLoaded = true;
   },
 
   methods: {

@@ -1,12 +1,12 @@
 <template>
   <v-container>
-    <v-layout text-xs-center wrap>
+    <!-- <v-layout text-xs-center wrap>
       <v-flex xs12 sm6 offset-sm3>
         <v-card>
           <v-img
-            :src="require('../assets/logo.png')"
+            :src="require('../assets/emlogo.svg')"
             contain
-            height="200"
+            height="50"
           ></v-img>
           <v-card-title primary-title>
             <div class="ma-auto">
@@ -17,7 +17,9 @@
           </v-card-title>
         </v-card>
       </v-flex>
-    </v-layout>
+    </v-layout> -->
+    <span >IDF version: {{ version }}</span><br />
+    <span >ESP cores: {{ cores }}</span>
   </v-container>
 </template>
 
