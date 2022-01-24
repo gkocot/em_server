@@ -1,4 +1,5 @@
-- Implement POST /api/v1/modbus handler in backend;
+- What are the .map files for in dist/ folder, can we remove them? Why do we see 14MB being loaded from em_server?
+- Implement POST /api/v1/modbus handler in backend (On ESP32);
 - Separate endpoint to only apply changes for modbus or wifi (don't send the whole configuration),
   it is OK to read whole configuration in one API call;
 - Fields validation, allow only 4 HEX characters in address field;

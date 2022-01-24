@@ -18,6 +18,14 @@
         </v-card>
       </v-flex>
     </v-layout> -->
+    
+    <!-- LOGO -->
+    <!-- <div style="display:flex">
+      <div style="flex-grow:1"></div>
+      <img src="../assets/emlogo.svg" style="display:block"/>
+      <div style="flex-grow:1"></div>
+    </div> -->
+    
     <span >IDF version: {{ version }}</span><br />
     <span >ESP cores: {{ cores }}</span>
   </v-container>

@@ -5,8 +5,9 @@
         @click.stop="drawer.visible = !drawer.visible"
       ></v-app-bar-nav-icon>
       <v-toolbar-title>{{ title }}</v-toolbar-title>
-      <div style="flex-grow:1"></div>
-      <img src="./assets/emlogo.svg" style="height:100%;padding:10px 0px" />
+      <!-- LOGO -->
+      <!-- <div style="flex-grow:1"></div>
+      <img src="./assets/emlogo.svg" style="height:100%;padding:10px 0px" /> -->
     </v-app-bar>
     <v-navigation-drawer app clipped v-model="drawer.visible">
       <v-list dense>
@@ -33,6 +34,12 @@
       <v-container fluid>
         <router-view v-if="isConfigLoaded"></router-view>
         <div v-else class="text-center">
+          <!-- LOGO -->
+          <!-- <div style="display:flex">
+            <div style="flex-grow:1"></div>
+            <img src="./assets/emlogo.svg" style="display:block"/>
+            <div style="flex-grow:1"></div>
+          </div> -->
           <div class="pa-16">
             <v-progress-circular
               :size="150"

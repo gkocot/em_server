@@ -5,4 +5,5 @@ module.exports = {
     before: configureAPI,
   },
   transpileDependencies: ["vuetify"],
+  productionSourceMap: false,
 };
