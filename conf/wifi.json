@@ -1,0 +1,9 @@
+{
+  "wifiModes": [
+    { "text": "Station", "value": 1 },
+    { "text": "Access Point", "value": 2 }
+  ],
+  "mode": 2,
+  "ssid": "myssid-wifi",
+  "password": "mypassword-wifi"
+}

@@ -1,25 +1,38 @@
 <template>
   <v-container>
-    <v-select
-      label="Mode"
-      v-model="wifiSettings.mode"
-      :items="wifiSettings.wifiModes"
-    ></v-select>
-    <v-text-field label="SSID" v-model="wifiSettings.ssid"></v-text-field>
-    <v-text-field
-      label="Password"
-      v-model="wifiSettings.password"
-      :type="wifiPasswordVisible ? 'text' : 'password'"
-      :append-icon="getWiFiPasswordIcon()"
-      @click:append="toggleWiFiPasswordVisible()"
-    ></v-text-field>
-    <v-btn
-      v-if="wifiSettingsDirty"
-      x-large
-      color="success"
-      @click="saveWiFiConfigAndRestart()"
-      >Apply</v-btn
-    >
+    <div v-if="wifiSettingsLoaded">
+      <v-select
+        label="Mode"
+        v-model="wifiSettings.mode"
+        :items="wifiSettings.wifiModes"
+      ></v-select>
+
+      <v-text-field label="SSID" v-model="wifiSettings.ssid"></v-text-field>
+      <v-text-field
+        label="Password"
+        v-model="wifiSettings.password"
+        :type="wifiPasswordVisible ? 'text' : 'password'"
+        :append-icon="getWiFiPasswordIcon()"
+        @click:append="toggleWiFiPasswordVisible()"
+      ></v-text-field>
+      <v-btn
+        v-if="wifiSettingsDirty"
+        x-large
+        color="success"
+        @click="saveWiFiConfigAndRestart()"
+        >Apply</v-btn
+      >
+    </div>
+    <div v-else class="text-center">
+      <div class="pa-16">
+        <v-progress-circular
+          :size="150"
+          color="red"
+          indeterminate
+        ></v-progress-circular>
+      </div>
+      <span class="grey--text">Loading configuration...</span>
+    </div>
   </v-container>
 </template>
 
@@ -27,11 +40,11 @@
 import { mapActions, mapGetters } from "vuex";
 import { mdiEye, mdiEyeOff } from "@mdi/js";
 import { cloneDeep, isEqual } from "lodash";
-import axios from "axios";
 
 export default {
   data() {
     return {
+      wifiSettingsLoaded: false,
       wifiSettingsDirty: false,
       wifiPasswordVisible: false,
       wifiPasswordIcon: mdiEye,
@@ -39,9 +52,11 @@ export default {
     };
   },
 
-  created() {
+  async created() {
     this.setTitle("WiFi");
+    await this.loadWiFiConfig();
     this.wifiSettings = cloneDeep(this.wifiConfig);
+    this.wifiSettingsLoaded = true;
   },
 
   updated() {
@@ -49,13 +64,12 @@ export default {
   },
 
   methods: {
-    ...mapActions(["setTitle", "saveWiFiState", "saveConfig"]),
+    ...mapActions(["loadWiFiConfig", "saveWiFiConfig", "setTitle", "restart"]),
 
     async saveWiFiConfigAndRestart() {
-      await this.saveWiFiState(this.wifiSettings);
-      await this.saveConfig();
+      await this.saveWiFiConfig(this.wifiSettings);
       this.wifiSettingsDirty = false;
-      await axios.post("/api/v1/restart");
+      await restart();
     },
 
     getWiFiPasswordIcon() {

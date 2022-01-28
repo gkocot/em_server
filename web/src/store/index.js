@@ -3,6 +3,8 @@ import Vuex from "vuex";
 import axios from "axios";
 import { cloneDeep } from "lodash";
 
+// const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -10,12 +12,11 @@ export default new Vuex.Store({
 
   state: {
     title: "Home",
-    config: {
-      wifi: {
-        mode: 2,
-        ssid: "myssid",
-        password: "mypassword",
-      },
+    wifi: {
+      loaded: false,
+      mode: 2,
+      ssid: "myssid",
+      password: "mypassword",
     },
   },
 
@@ -23,8 +24,9 @@ export default new Vuex.Store({
     mutateConfig(state, config) {
       state.config = cloneDeep(config);
     },
-    mutateWifiConfig(state, wifi) {
-      state.config.wifi = cloneDeep(wifi);
+    mutateWiFiConfig(state, wifi) {
+      state.wifi = cloneDeep(wifi);
+      state.wifi.loaded = true;
     },
     mutateModbusConfig(state, modbus) {
       state.config.modbus = cloneDeep(modbus);
@@ -35,6 +37,34 @@ export default new Vuex.Store({
   },
 
   actions: {
+    async restart() {
+      try {
+        await axios.get("/api/v1/restart");
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    async loadWiFiConfig({ commit, state }) {
+      if (!state.wifi.loaded) {
+        try {
+          const { data: wifi } = await axios.get("/api/v1/wifi");
+          commit("mutateWiFiConfig", wifi);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    },
+
+    async saveWiFiConfig({ commit, state }, wifi) {
+      try {
+        await axios.post("/api/v1/wifi", wifi);
+        commit("mutateWiFiConfig", wifi);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
     async loadConfig({ commit }) {
       try {
         const resp = await axios.get("/api/v1/config");
@@ -60,10 +90,6 @@ export default new Vuex.Store({
       }
     },
 
-    async saveWiFiState({ commit }, wifi) {
-      commit("mutateWifiConfig", wifi);
-    },
-
     async saveModbusState({ commit }, modbus) {
       commit("mutateModbusConfig", modbus);
     },
@@ -75,7 +101,7 @@ export default new Vuex.Store({
 
   getters: {
     wifiConfig: (state) => {
-      return state.config.wifi;
+      return state.wifi;
     },
     modbusConfig: (state) => {
       return state.config.modbus;
