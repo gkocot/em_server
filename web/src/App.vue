@@ -32,23 +32,7 @@
     <v-main>
       <!-- Provides the application the proper gutter -->
       <v-container fluid>
-        <router-view v-if="isConfigLoaded"></router-view>
-        <div v-else class="text-center">
-          <!-- LOGO -->
-          <!-- <div style="display:flex">
-            <div style="flex-grow:1"></div>
-            <img src="./assets/emlogo.svg" style="display:block"/>
-            <div style="flex-grow:1"></div>
-          </div> -->
-          <div class="pa-16">
-            <v-progress-circular
-              :size="150"
-              color="red"
-              indeterminate
-            ></v-progress-circular>
-          </div>
-          <span class="grey--text">Loading configuration...</span>
-        </div>
+        <router-view></router-view>
       </v-container>
     </v-main>
     <!-- <div style="display:flex;background-color:rgb(245,245,245)">
@@ -68,15 +52,13 @@ import {
   mdiElectricSwitch,
   mdiSineWave,
 } from "@mdi/js";
-import { mapState, mapActions } from "vuex";
+import { mapState } from "vuex";
 
 export default {
   name: "App",
 
   data() {
     return {
-      isConfigLoaded: false,
-      config: {},
       drawer: {
         visible: null,
         selectedItem: 0,
@@ -94,15 +76,6 @@ export default {
         ],
       },
     };
-  },
-
-  async mounted() {
-    await this.loadConfig();
-    this.isConfigLoaded = true;
-  },
-
-  methods: {
-    ...mapActions(["loadConfig"]),
   },
 
   computed: {

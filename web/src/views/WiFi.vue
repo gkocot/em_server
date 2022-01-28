@@ -40,6 +40,7 @@
 import { mapActions, mapGetters } from "vuex";
 import { mdiEye, mdiEyeOff } from "@mdi/js";
 import { cloneDeep, isEqual } from "lodash";
+import axios from "axios";
 
 export default {
   data() {
@@ -64,12 +65,12 @@ export default {
   },
 
   methods: {
-    ...mapActions(["loadWiFiConfig", "saveWiFiConfig", "setTitle", "restart"]),
+    ...mapActions(["loadWiFiConfig", "saveWiFiConfig", "setTitle"]),
 
     async saveWiFiConfigAndRestart() {
       await this.saveWiFiConfig(this.wifiSettings);
       this.wifiSettingsDirty = false;
-      await restart();
+      await axios.post("/api/v1/restart");
     },
 
     getWiFiPasswordIcon() {

@@ -37,14 +37,6 @@ export default new Vuex.Store({
   },
 
   actions: {
-    async restart() {
-      try {
-        await axios.get("/api/v1/restart");
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
     async loadWiFiConfig({ commit, state }) {
       if (!state.wifi.loaded) {
         try {
@@ -56,7 +48,7 @@ export default new Vuex.Store({
       }
     },
 
-    async saveWiFiConfig({ commit, state }, wifi) {
+    async saveWiFiConfig({ commit }, wifi) {
       try {
         await axios.post("/api/v1/wifi", wifi);
         commit("mutateWiFiConfig", wifi);
