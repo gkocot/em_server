@@ -46,13 +46,13 @@
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
-    <!-- No inline styles -->
+    <!-- TBD No inline styles -->
     <div style="padding-top: 10px; float: right">
       <v-btn
         v-if="modbusSettingsDirty"
         x-large
         color="success"
-        @click="applyWiFiSettings()"
+        @click="applyModbusSettings()"
         >Apply</v-btn
       >
     </div>
@@ -71,7 +71,6 @@ export default {
 
   data() {
     return {
-      //   experimentValue: false,
       modbusSettingsLoaded: false,
       modbusSettingsDirty: false,
       modbusSettings: {},
@@ -88,7 +87,7 @@ export default {
 
   updated() {
     this.modbusSettingsDirty = !isEqual(this.modbusConfig, this.modbusSettings);
-    console.log(JSON.stringify(this.modbusSettings.devices)); // TBD remove debug code
+    // console.log(JSON.stringify(this.modbusSettings.devices)); // TBD remove debug code
   },
 
   methods: {
@@ -124,10 +123,6 @@ export default {
       }
       console.log(JSON.stringify(device));
     },
-
-    // experimentButtonClick() {
-    //   this.experimentValue = !this.experimentValue;
-    // },
   },
 
   computed: {

@@ -54,8 +54,10 @@ export default new Vuex.Store({
 
     async saveWiFiConfig({ commit }, wifi) {
       try {
-        await axios.post("/api/v1/wifi", wifi);
-        commit("mutateWiFiConfig", wifi);
+        const wifiConfig = cloneDeep(wifi);
+        delete wifiConfig.loaded;
+        await axios.post("/api/v1/wifi", wifiConfig);
+        commit("mutateWiFiConfig", wifiConfig);
       } catch (error) {
         console.log(error);
       }
@@ -72,9 +74,12 @@ export default new Vuex.Store({
       }
     },
 
-    async saveModbusConfig({ state }) {
+    async saveModbusConfig({ commit }, modbus) {
       try {
-        await axios.post("/api/v1/modbus", state.config.modbus);
+        const modbusConfig = cloneDeep(modbus);
+        delete modbusConfig.loaded;
+        await axios.post("/api/v1/modbus", modbusConfig);
+        commit("mutateModbusConfig", modbusConfig);
       } catch (error) {
         console.log(error);
       }
