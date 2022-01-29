@@ -1,6 +1,14 @@
 <template>
   <v-container>
-    <v-select
+    <Throbber :loaded="modbusSettingsLoaded">
+      {{ modbusSettings }}
+      <!-- <v-select
+      label="Master"
+      v-model="modbusSettings.master.id"
+      :items="masterDeviceTypes()"
+    ></v-select> -->
+
+      <!-- <v-select
       label="Speed"
       v-model="modbusSettings.speed"
       :items="modbusSettings.speeds"
@@ -19,27 +27,39 @@
       v-if="modbusSettingsDirty"
       x-large
       color="success"
-      @click="applyModbusConfig()"
+      @click="applyModbusSettings()"
       >Apply</v-btn
-    >
+    > -->
+    </Throbber>
   </v-container>
 </template>
 
 <script>
+import Throbber from "../components/Throbber.vue";
 import { mapActions, mapGetters } from "vuex";
 import { cloneDeep, isEqual } from "lodash";
 
 export default {
+  components: {
+    Throbber,
+  },
+
   data() {
     return {
+      //   experimentValue: false,
+      modbusSettingsLoaded: false,
       modbusSettingsDirty: false,
       modbusSettings: {},
     };
   },
 
-  created() {
+  async created() {
+    console.log("Modbus created");
     this.setTitle("Modbus");
+    await this.loadModbusConfig();
     this.modbusSettings = cloneDeep(this.modbusConfig);
+    console.log(JSON.stringify(this.modbusSettings));
+    this.modbusSettingsLoaded = true;
   },
 
   updated() {
@@ -47,18 +67,24 @@ export default {
   },
 
   methods: {
-    ...mapActions(["setTitle", "saveModbusState", "saveModbus"]),
-    ...mapActions(["setTitle"]),
+    ...mapActions(["loadModbusConfig", "saveModbusConfig", "setTitle"]),
 
-    async applyModbusConfig() {
-      await this.saveModbusState(this.modbusSettings);
-      await this.saveModbus();
+    async applyModbusSettings() {
+      await this.saveModbusConfig(this.modbusSettings);
       this.modbusSettingsDirty = false;
     },
+
+    // experimentButtonClick() {
+    //   this.experimentValue = !this.experimentValue;
+    // },
   },
 
   computed: {
     ...mapGetters(["modbusConfig"]),
+
+    masterDeviceTypes() {
+      return this.modbusSettings.deviceTypes.filter((t) => t.masterCapable);
+    },
   },
 };
 </script>

@@ -1,61 +1,73 @@
 {
-  "wifi": {
-    "wifiModes": [
-      { "name": "Station", "value": 1 },
-      { "name": "Access Point", "value": 2 }
-    ],
-    "mode": 2,
-    "ssid": "myssid-f",
-    "password": "mypassword-f"
-  },
-  "modbus": {
-    "deviceTypes": [
-      {
-        "id": 0,
-        "name": "DTSU666",
-        "speeds": [2400, 4800, 9600],
-        "stopBits": [0],
-        "masterCapable": true
-      },
-      {
-        "id": 1,
-        "name": "EM340",
-        "speeds": [9600, 19200, 38400, 57600, 115200],
-        "stopBits": [0, 1, 2],
-        "masterCapable": true
-      },
-      {
-        "id": 2,
-        "name": "EX9EMS3P4M",
-        "speeds": [2400, 4800, 9600],
-        "stopBits": [0],
-        "masterCapable": true
-      },
-      {
-        "id": 3,
-        "name": "SDM630V2",
-        "speeds": [2400, 4800, 9600],
-        "stopBits": [0],
-        "masterCapable": false
-      }
-    ],
-    "parrityModes": [
-      { "name": "even", "value": 0 },
-      { "name": "odd (no parity)", "value": 1 }
-    ],
-    "master": {
+  "deviceTypes": [
+    {
       "id": 0,
       "name": "DTSU666",
-      "speed": 9600,
-      "stopBits": 0,
-      "address": 0
+      "speeds": [2400, 4800, 9600],
+      "stopBits": [0],
+      "masterCapable": true
     },
-    "slave": {
+    {
+      "id": 1,
+      "name": "EM340",
+      "speeds": [9600, 19200, 38400, 57600, 115200],
+      "stopBits": [0, 1, 2],
+      "masterCapable": true
+    },
+    {
+      "id": 2,
+      "name": "EX9EMS3P4M",
+      "speeds": [2400, 4800, 9600],
+      "stopBits": [0],
+      "masterCapable": true
+    },
+    {
+      "id": 3,
+      "name": "SDM630V2",
+      "speeds": [2400, 4800, 9600],
+      "stopBits": [0],
+      "masterCapable": false
+    }
+  ],
+  "parrityModes": [
+    { "name": "even", "value": 0 },
+    { "name": "odd (no parity)", "value": 1 }
+  ],
+  "master": {
+    "id": 0,
+    "name": "DTSU666",
+    "speed": 9600,
+    "stopBits": 0,
+    "address": 0
+  },
+  "slaves": [
+    {
       "id": 1,
       "name": "EM340",
       "speed": 9600,
       "stopBits": 0,
       "address": 1
+    },
+    {
+      "id": 1,
+      "name": "EM340",
+      "speed": 9600,
+      "stopBits": 0,
+      "address": 2
+    },
+    {
+      "id": 1,
+      "name": "EM340",
+      "speed": 9600,
+      "stopBits": 0,
+      "address": 3
+    },
+    {
+      "id": 1,
+      "name": "EM340",
+      "speed": 9600,
+      "stopBits": 0,
+      "address": 4
     }
-  }
+  ]
 }

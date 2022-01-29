@@ -18,6 +18,9 @@ export default new Vuex.Store({
       ssid: "myssid",
       password: "mypassword",
     },
+    modbus: {
+      loaded: false,
+    },
   },
 
   mutations: {
@@ -29,7 +32,8 @@ export default new Vuex.Store({
       state.wifi.loaded = true;
     },
     mutateModbusConfig(state, modbus) {
-      state.config.modbus = cloneDeep(modbus);
+      state.modbus = cloneDeep(modbus);
+      state.modbus.loaded = true;
     },
     mutateTitle(state, title) {
       state.title = title;
@@ -57,6 +61,33 @@ export default new Vuex.Store({
       }
     },
 
+    async loadModbusConfig({ commit, state }) {
+      console.log("loadModbusConfig1", state.modbus.loaded);
+      console.log(JSON.stringify(state.modbus));
+      if (!state.modbus.loaded) {
+        console.log("loadModbusConfig2");
+        try {
+          const { data: modbus } = await axios.get("/api/v1/modbus");
+          console.log(JSON.stringify(modbus));
+          commit("mutateModbusConfig", modbus);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    },
+
+    async saveModbusConfig({ state }) {
+      try {
+        await axios.post("/api/v1/modbus", state.config.modbus);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    async saveModbusState({ commit }, modbus) {
+      commit("mutateModbusConfig", modbus);
+    },
+
     async loadConfig({ commit }) {
       try {
         const resp = await axios.get("/api/v1/config");
@@ -72,18 +103,6 @@ export default new Vuex.Store({
       } catch (error) {
         console.log(error);
       }
-    },
-
-    async saveModbus({ state }) {
-      try {
-        await axios.post("/api/v1/modbus", state.config.modbus);
-      } catch (error) {
-        console.log(error);
-      }
-    },
-
-    async saveModbusState({ commit }, modbus) {
-      commit("mutateModbusConfig", modbus);
     },
 
     setTitle({ commit }, title) {

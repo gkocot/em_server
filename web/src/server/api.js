@@ -4,11 +4,13 @@ const os = require("os");
 const fs = require("fs").promises;
 const configFilePath = "../../../conf/emconfig.json";
 const wifiConfigFilePath = "../../../conf/wifi.json";
+const modbusConfigFilePath = "../../../conf/modbus.json";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let config = require(configFilePath);
 let wifiConfig = require(wifiConfigFilePath);
+let modbusConfig = require(modbusConfigFilePath);
 
 // middleware that is specific to this router
 // router.use(function timeLog(req, res, next) {
@@ -26,6 +28,12 @@ router.get("/wifi", async function (req, res) {
   console.log("GET /wifi");
   await sleep(1000);
   res.json(wifiConfig);
+});
+
+router.get("/modbus", async function (req, res) {
+  console.log("GET /modbus");
+  await sleep(1000);
+  res.json(modbusConfig);
 });
 
 router.post("/config", async function (req, res) {
@@ -47,8 +55,8 @@ router.post("/wifi", async function (req, res) {
 router.post("/modbus", async function (req, res) {
   console.log("POST /modbus");
   console.log(JSON.stringify(req.body));
-  config.modbus = req.body; // TBD: cloneDeep?
-  await flushConfig();
+  modbusConfig = req.body; // TBD: cloneDeep?
+  await fs.writeFile(modbusConfigFilePath, modbusConfig);
   res.sendStatus(204);
 });
 

@@ -1,6 +1,6 @@
 <template>
-  <v-container>
-    <div v-if="wifiSettingsLoaded">
+  <Throbber :loaded="wifiSettingsLoaded">
+    <v-container>
       <v-select
         label="Mode"
         v-model="wifiSettings.mode"
@@ -19,30 +19,25 @@
         v-if="wifiSettingsDirty"
         x-large
         color="success"
-        @click="saveWiFiConfigAndRestart()"
+        @click="applyWiFiSettings()"
         >Apply</v-btn
       >
-    </div>
-    <div v-else class="text-center">
-      <div class="pa-16">
-        <v-progress-circular
-          :size="150"
-          color="red"
-          indeterminate
-        ></v-progress-circular>
-      </div>
-      <span class="grey--text">Loading configuration...</span>
-    </div>
-  </v-container>
+    </v-container>
+  </Throbber>
 </template>
 
 <script>
+import Throbber from "../components/Throbber.vue";
 import { mapActions, mapGetters } from "vuex";
 import { mdiEye, mdiEyeOff } from "@mdi/js";
 import { cloneDeep, isEqual } from "lodash";
 import axios from "axios";
 
 export default {
+  components: {
+    Throbber,
+  },
+
   data() {
     return {
       wifiSettingsLoaded: false,
@@ -67,7 +62,7 @@ export default {
   methods: {
     ...mapActions(["loadWiFiConfig", "saveWiFiConfig", "setTitle"]),
 
-    async saveWiFiConfigAndRestart() {
+    async applyWiFiSettings() {
       await this.saveWiFiConfig(this.wifiSettings);
       this.wifiSettingsDirty = false;
       await axios.post("/api/v1/restart");
