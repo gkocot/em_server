@@ -33,41 +33,46 @@
     { "name": "even", "value": 0 },
     { "name": "odd (no parity)", "value": 1 }
   ],
-  "master": {
-    "id": 0,
-    "name": "DTSU666",
-    "speed": 9600,
-    "stopBits": 0,
-    "address": 0
-  },
-  "slaves": [
+  "devices": [
     {
-      "id": 1,
-      "name": "EM340",
+      "id": 0,
+      "type": 0,
       "speed": 9600,
       "stopBits": 0,
-      "address": 1
+      "address": 0,
+      "master": true
     },
     {
       "id": 1,
-      "name": "EM340",
+      "type": 1,
       "speed": 9600,
       "stopBits": 0,
-      "address": 2
+      "address": 1,
+      "master": false
     },
     {
-      "id": 1,
-      "name": "EM340",
+      "id": 2,
+      "type": 1,
       "speed": 9600,
       "stopBits": 0,
-      "address": 3
+      "address": 2,
+      "master": false
     },
     {
-      "id": 1,
-      "name": "EM340",
+      "id": 3,
+      "type": 1,
       "speed": 9600,
       "stopBits": 0,
-      "address": 4
+      "address": 3,
+      "master": false
+    },
+    {
+      "id": 4,
+      "type": 1,
+      "speed": 9600,
+      "stopBits": 0,
+      "address": 4,
+      "master": false
     }
   ]
 }

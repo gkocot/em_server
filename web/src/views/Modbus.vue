@@ -1,35 +1,29 @@
 <template>
   <v-container>
     <Throbber :loaded="modbusSettingsLoaded">
-      {{ modbusSettings }}
-      <!-- <v-select
-      label="Master"
-      v-model="modbusSettings.master.id"
-      :items="masterDeviceTypes()"
-    ></v-select> -->
-
-      <!-- <v-select
-      label="Speed"
-      v-model="modbusSettings.speed"
-      :items="modbusSettings.speeds"
-    ></v-select>
-
-    <v-row>
-      <v-col>Device Name</v-col>
-      <v-col>Address</v-col>
-    </v-row>
-    <v-row dense v-for="device in modbusSettings.devices" :key="device.address">
-      <v-col><v-text-field v-model="device.name"></v-text-field></v-col>
-      <v-col><v-text-field v-model="device.address"></v-text-field></v-col>
-    </v-row>
-
-    <v-btn
-      v-if="modbusSettingsDirty"
-      x-large
-      color="success"
-      @click="applyModbusSettings()"
-      >Apply</v-btn
-    > -->
+      <div v-for="device in modbusSettings.devices" :key="device.id">
+        <v-card>
+          <!-- TBD No inline styles! -->
+          <div style="padding: 10px">
+            <div>Device {{ device.id }}</div>
+            <v-select
+              label="Type"
+              v-model="device.type"
+              :items="getDeviceTypes"
+            ></v-select>
+            <v-select
+              label="Speed"
+              v-model="device.speed"
+              :items="getAllowedDeviceSpeeds(device)"
+            ></v-select>
+            <v-select
+              label="Stop Bits"
+              v-model="device.stopBits"
+              :items="getAllowedDeviceStopBits(device)"
+            ></v-select>
+          </div>
+        </v-card>
+      </div>
     </Throbber>
   </v-container>
 </template>
@@ -54,16 +48,16 @@ export default {
   },
 
   async created() {
-    console.log("Modbus created");
     this.setTitle("Modbus");
     await this.loadModbusConfig();
     this.modbusSettings = cloneDeep(this.modbusConfig);
-    console.log(JSON.stringify(this.modbusSettings));
+    // console.log(JSON.stringify(this.modbusSettings)); // TBD remove debug code
     this.modbusSettingsLoaded = true;
   },
 
   updated() {
     this.modbusSettingsDirty = !isEqual(this.modbusConfig, this.modbusSettings);
+    console.log(JSON.stringify(this.modbusSettings.devices));
   },
 
   methods: {
@@ -74,6 +68,23 @@ export default {
       this.modbusSettingsDirty = false;
     },
 
+    getAllowedDeviceSpeeds: function (device) {
+      const allowedSpeeds = this.modbusSettings.deviceTypes[device.type].speeds;
+      if (!allowedSpeeds.includes(device.speed)) {
+        device.speed = allowedSpeeds[0];
+      }
+      return allowedSpeeds;
+    },
+
+    getAllowedDeviceStopBits: function (device) {
+      const allowedStopBits =
+        this.modbusSettings.deviceTypes[device.type].stopBits;
+      if (!allowedStopBits.includes(device.stopBits)) {
+        device.stopBits = allowedStopBits[0];
+      }
+      return allowedStopBits;
+    },
+
     // experimentButtonClick() {
     //   this.experimentValue = !this.experimentValue;
     // },
@@ -82,8 +93,10 @@ export default {
   computed: {
     ...mapGetters(["modbusConfig"]),
 
-    masterDeviceTypes() {
-      return this.modbusSettings.deviceTypes.filter((t) => t.masterCapable);
+    getDeviceTypes: function () {
+      return this.modbusSettings.deviceTypes.map((t) => {
+        return { value: t.id, text: t.name };
+      });
     },
   },
 };

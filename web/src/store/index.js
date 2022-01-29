@@ -62,13 +62,9 @@ export default new Vuex.Store({
     },
 
     async loadModbusConfig({ commit, state }) {
-      console.log("loadModbusConfig1", state.modbus.loaded);
-      console.log(JSON.stringify(state.modbus));
       if (!state.modbus.loaded) {
-        console.log("loadModbusConfig2");
         try {
           const { data: modbus } = await axios.get("/api/v1/modbus");
-          console.log(JSON.stringify(modbus));
           commit("mutateModbusConfig", modbus);
         } catch (error) {
           console.log(error);
@@ -115,7 +111,7 @@ export default new Vuex.Store({
       return state.wifi;
     },
     modbusConfig: (state) => {
-      return state.config.modbus;
+      return state.modbus;
     },
   },
 });
