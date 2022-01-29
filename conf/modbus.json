@@ -30,8 +30,8 @@
     }
   ],
   "parrityOptions": [
-    { "name": "even", "value": 0 },
-    { "name": "odd", "value": 1 }
+    { "text": "even", "value": 0 },
+    { "text": "odd", "value": 1 }
   ],
   "devices": [
     {

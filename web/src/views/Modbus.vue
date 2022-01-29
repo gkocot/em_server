@@ -24,6 +24,11 @@
             v-model="device.stopBits"
             :items="getAllowedDeviceStopBits(device)"
           ></v-select>
+          <v-select
+            label="Parrity"
+            v-model="device.parrity"
+            :items="modbusSettings.parrityOptions"
+          ></v-select>
           <v-text-field
             label="Address"
             type="number"
@@ -83,7 +88,7 @@ export default {
 
   updated() {
     this.modbusSettingsDirty = !isEqual(this.modbusConfig, this.modbusSettings);
-    // console.log(JSON.stringify(this.modbusSettings.devices)); // TBD remove debug code
+    console.log(JSON.stringify(this.modbusSettings.devices)); // TBD remove debug code
   },
 
   methods: {
