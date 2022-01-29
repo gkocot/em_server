@@ -14,13 +14,15 @@
       :append-icon="getWiFiPasswordIcon()"
       @click:append="toggleWiFiPasswordVisible()"
     ></v-text-field>
-    <v-btn
-      v-if="wifiSettingsDirty"
-      x-large
-      color="success"
-      @click="applyWiFiSettings()"
-      >Apply</v-btn
-    >
+    <div style="padding-top: 10px; float: right">
+      <v-btn
+        v-if="wifiSettingsDirty"
+        x-large
+        color="success"
+        @click="applyWiFiSettings()"
+        >Apply</v-btn
+      >
+    </div>
   </Throbber>
 </template>
 

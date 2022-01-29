@@ -6,7 +6,7 @@
     <div class="pa-16">
       <v-progress-circular
         :size="150"
-        color="red"
+        color="rgb(25, 118, 210)"
         indeterminate
       ></v-progress-circular>
     </div>

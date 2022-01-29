@@ -34,6 +34,16 @@
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
+    <!-- No inline styles -->
+    <div style="padding-top: 10px; float: right">
+      <v-btn
+        v-if="modbusSettingsDirty"
+        x-large
+        color="success"
+        @click="applyWiFiSettings()"
+        >Apply</v-btn
+      >
+    </div>
   </Throbber>
 </template>
 
@@ -121,6 +131,7 @@ export default {
 </script>
 
 <style scoped>
+/* TBD color variables common for whole project */
 .theme--light.v-input--is-disabled.masterSlaveCheckbox {
   color: rgb(25, 118, 210);
 }
