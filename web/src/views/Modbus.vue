@@ -1,31 +1,33 @@
 <template>
-  <v-container>
-    <Throbber :loaded="modbusSettingsLoaded">
-      <div v-for="device in modbusSettings.devices" :key="device.id">
-        <v-card>
-          <!-- TBD No inline styles! -->
-          <div style="padding: 10px">
-            <div>Device {{ device.id }}</div>
-            <v-select
-              label="Type"
-              v-model="device.type"
-              :items="getDeviceTypes"
-            ></v-select>
-            <v-select
-              label="Speed"
-              v-model="device.speed"
-              :items="getAllowedDeviceSpeeds(device)"
-            ></v-select>
-            <v-select
-              label="Stop Bits"
-              v-model="device.stopBits"
-              :items="getAllowedDeviceStopBits(device)"
-            ></v-select>
-          </div>
-        </v-card>
-      </div>
-    </Throbber>
-  </v-container>
+  <Throbber :loaded="modbusSettingsLoaded">
+    <v-expansion-panels multiple accordion>
+      <v-expansion-panel
+        v-for="device in modbusSettings.devices"
+        :key="device.id"
+      >
+        <v-expansion-panel-header>
+          Device {{ device.id }}
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <v-select
+            label="Type"
+            v-model="device.type"
+            :items="getDeviceTypes"
+          ></v-select>
+          <v-select
+            label="Speed"
+            v-model="device.speed"
+            :items="getAllowedDeviceSpeeds(device)"
+          ></v-select>
+          <v-select
+            label="Stop Bits"
+            v-model="device.stopBits"
+            :items="getAllowedDeviceStopBits(device)"
+          ></v-select>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
+  </Throbber>
 </template>
 
 <script>

@@ -1,28 +1,26 @@
 <template>
   <Throbber :loaded="wifiSettingsLoaded">
-    <v-container>
-      <v-select
-        label="Mode"
-        v-model="wifiSettings.mode"
-        :items="wifiSettings.wifiModes"
-      ></v-select>
+    <v-select
+      label="Mode"
+      v-model="wifiSettings.mode"
+      :items="wifiSettings.wifiModes"
+    ></v-select>
 
-      <v-text-field label="SSID" v-model="wifiSettings.ssid"></v-text-field>
-      <v-text-field
-        label="Password"
-        v-model="wifiSettings.password"
-        :type="wifiPasswordVisible ? 'text' : 'password'"
-        :append-icon="getWiFiPasswordIcon()"
-        @click:append="toggleWiFiPasswordVisible()"
-      ></v-text-field>
-      <v-btn
-        v-if="wifiSettingsDirty"
-        x-large
-        color="success"
-        @click="applyWiFiSettings()"
-        >Apply</v-btn
-      >
-    </v-container>
+    <v-text-field label="SSID" v-model="wifiSettings.ssid"></v-text-field>
+    <v-text-field
+      label="Password"
+      v-model="wifiSettings.password"
+      :type="wifiPasswordVisible ? 'text' : 'password'"
+      :append-icon="getWiFiPasswordIcon()"
+      @click:append="toggleWiFiPasswordVisible()"
+    ></v-text-field>
+    <v-btn
+      v-if="wifiSettingsDirty"
+      x-large
+      color="success"
+      @click="applyWiFiSettings()"
+      >Apply</v-btn
+    >
   </Throbber>
 </template>
 
