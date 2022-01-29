@@ -6,7 +6,7 @@
         :key="device.id"
       >
         <v-expansion-panel-header>
-          Device {{ device.id }}
+          Device {{ device.id }} {{ device.master ? "Master" : "Slave" }}
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <v-select
@@ -24,6 +24,13 @@
             v-model="device.stopBits"
             :items="getAllowedDeviceStopBits(device)"
           ></v-select>
+          <v-checkbox
+            class="masterSlaveCheckbox"
+            v-model="device.master"
+            :disabled="device.master"
+            label="Master"
+            @change="setOtherDevicesToSlaveMode(device)"
+          ></v-checkbox>
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
@@ -87,6 +94,15 @@ export default {
       return allowedStopBits;
     },
 
+    setOtherDevicesToSlaveMode(device) {
+      for (const element of this.modbusSettings.devices) {
+        if (element.id !== device.id) {
+          element.master = false;
+        }
+      }
+      console.log(JSON.stringify(device));
+    },
+
     // experimentButtonClick() {
     //   this.experimentValue = !this.experimentValue;
     // },
@@ -103,3 +119,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.theme--light.v-input--is-disabled.masterSlaveCheckbox {
+  color: rgb(25, 118, 210);
+}
+</style>
