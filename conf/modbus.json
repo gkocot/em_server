@@ -29,9 +29,9 @@
       "masterCapable": false
     }
   ],
-  "parrityModes": [
+  "parrityOptions": [
     { "name": "even", "value": 0 },
-    { "name": "odd (no parity)", "value": 1 }
+    { "name": "odd", "value": 1 }
   ],
   "devices": [
     {
@@ -39,6 +39,7 @@
       "type": 0,
       "speed": 9600,
       "stopBits": 0,
+      "parrity": 0,
       "address": 0,
       "master": true
     },
@@ -47,6 +48,7 @@
       "type": 1,
       "speed": 9600,
       "stopBits": 0,
+      "parrity": 0,
       "address": 1,
       "master": false
     },
@@ -55,6 +57,7 @@
       "type": 1,
       "speed": 9600,
       "stopBits": 0,
+      "parrity": 0,
       "address": 2,
       "master": false
     },
@@ -63,6 +66,7 @@
       "type": 1,
       "speed": 9600,
       "stopBits": 0,
+      "parrity": 0,
       "address": 3,
       "master": false
     },
@@ -71,6 +75,7 @@
       "type": 1,
       "speed": 9600,
       "stopBits": 0,
+      "parrity": 0,
       "address": 4,
       "master": false
     }

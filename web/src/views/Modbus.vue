@@ -24,6 +24,13 @@
             v-model="device.stopBits"
             :items="getAllowedDeviceStopBits(device)"
           ></v-select>
+          <v-text-field
+            label="Address"
+            type="number"
+            min="0"
+            max="247"
+            v-model="device.address"
+          ></v-text-field>
           <v-checkbox
             class="masterSlaveCheckbox"
             v-model="device.master"
@@ -76,7 +83,7 @@ export default {
 
   updated() {
     this.modbusSettingsDirty = !isEqual(this.modbusConfig, this.modbusSettings);
-    console.log(JSON.stringify(this.modbusSettings.devices));
+    // console.log(JSON.stringify(this.modbusSettings.devices)); // TBD remove debug code
   },
 
   methods: {
