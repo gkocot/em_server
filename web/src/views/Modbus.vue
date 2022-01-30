@@ -12,7 +12,7 @@
           <v-select
             label="Type"
             v-model="device.type"
-            :items="getDeviceTypes"
+            :items="getAllowedDeviceTypes(device)"
           ></v-select>
           <v-select
             label="Speed"
@@ -98,6 +98,23 @@ export default {
       this.modbusSettingsDirty = false;
     },
 
+    getAllowedDeviceTypes: function (device) {
+      const allowedDeviceTypes = [];
+      for (const element of this.modbusSettings.deviceTypes) {
+        if (element.masterCapable || !device.master) {
+          allowedDeviceTypes.push({ value: element.id, text: element.name });
+        }
+      }
+
+      if (
+        allowedDeviceTypes.filter((e) => e.value === device.type).length === 0
+      ) {
+        device.type = allowedDeviceTypes[0].value;
+      }
+
+      return allowedDeviceTypes;
+    },
+
     getAllowedDeviceSpeeds: function (device) {
       const allowedSpeeds = this.modbusSettings.deviceTypes[device.type].speeds;
       if (!allowedSpeeds.includes(device.speed)) {
@@ -121,18 +138,11 @@ export default {
           element.master = false;
         }
       }
-      console.log(JSON.stringify(device));
     },
   },
 
   computed: {
     ...mapGetters(["modbusConfig"]),
-
-    getDeviceTypes: function () {
-      return this.modbusSettings.deviceTypes.map((t) => {
-        return { value: t.id, text: t.name };
-      });
-    },
   },
 };
 </script>
