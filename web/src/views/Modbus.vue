@@ -34,7 +34,7 @@
             type="number"
             min="0"
             max="247"
-            v-model="device.address"
+            v-model.number="device.address"
           ></v-text-field>
           <v-checkbox
             class="masterSlaveCheckbox"
