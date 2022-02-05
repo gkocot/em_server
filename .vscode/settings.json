@@ -1,10 +1,12 @@
 {
-    "files.associations": {
-        "esp_system.h": "c",
-        "stdio.h": "c",
-        "esp_wifi.h": "c",
-        "esp_event.h": "c",
-        "mdns.h": "c",
-        "spi_common.h": "c"
-    }
+  "files.associations": {
+    "esp_system.h": "c",
+    "stdio.h": "c",
+    "esp_wifi.h": "c",
+    "esp_event.h": "c",
+    "mdns.h": "c",
+    "spi_common.h": "c",
+    "errno.h": "c",
+    "dirent.h": "c"
+  }
 }
