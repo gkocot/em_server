@@ -138,13 +138,13 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req)
 //     return ESP_OK;
 // }
 
-static esp_err_t config_get_handler(httpd_req_t *req)
+static esp_err_t wifi_get_handler(httpd_req_t *req)
 {
     // static bool config_loaded = false;
 
     // if (!config_loaded) {
         // TBD Kconfig for /conf/emconfig.json
-        const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/emconfig.json";
+        const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/wifi.json";
         ESP_LOGI(REST_TAG, "Opening file %s", file_config);
         FILE *f = fopen(file_config, "r");
         if (f == NULL) {
@@ -155,7 +155,7 @@ static esp_err_t config_get_handler(httpd_req_t *req)
         ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
 
         long fsize = ftell(f);
-        ESP_LOGI(REST_TAG, "emconfig.json (%ld)\n", fsize);
+        ESP_LOGI(REST_TAG, "wifi.json (%ld)\n", fsize);
         
         fseek_result = fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
         ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
@@ -166,7 +166,7 @@ static esp_err_t config_get_handler(httpd_req_t *req)
 
         fclose(f);
         str_config[fsize] = 0;
-        ESP_LOGI(REST_TAG, "emconfig.json: %s\n", str_config);
+        ESP_LOGI(REST_TAG, "wifi.json: %s\n", str_config);
     // }
 
     httpd_resp_set_type(req, "application/json");
@@ -178,14 +178,14 @@ static esp_err_t config_get_handler(httpd_req_t *req)
     // const char *sys_info = cJSON_Print(root);
     // httpd_resp_sendstr(req, sys_info);
     esp_err_t r = httpd_resp_sendstr(req, str_config);
-    ESP_LOGI(REST_TAG, "config_get_handler %d: %d\n", __LINE__, r);
+    ESP_LOGI(REST_TAG, "wifi_get_handler %d: %d\n", __LINE__, r);
     free(str_config);
     // free((void *)sys_info);
     // cJSON_Delete(root);
     return ESP_OK;
 }
 
-static esp_err_t config_post_handler(httpd_req_t *req)
+static esp_err_t wifi_post_handler(httpd_req_t *req)
 {
     int total_len = req->content_len;
     int cur_len = 0;
@@ -208,7 +208,107 @@ static esp_err_t config_post_handler(httpd_req_t *req)
     buf[total_len] = '\0';
 
     // TBD Functions to read/write config in separate module
-    const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/emconfig.json";
+    const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/wifi.json";
+    FILE *f = fopen(file_config, "w");
+    if (f == NULL) {
+        ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
+        // TBD there is dedicated function to send error 500 with no message.
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save configuration");
+        return ESP_FAIL;
+    }
+
+    size_t fwrite_result = fwrite(buf, total_len, 1, f);
+    if (fwrite_result != 1) {
+        // ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
+        fclose(f);
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save configuration");
+        return ESP_FAIL;
+    }
+
+    // TBD Remove.
+    // cJSON *root = cJSON_Parse(buf);
+    // int red = cJSON_GetObjectItem(root, "red")->valueint;
+    // int green = cJSON_GetObjectItem(root, "green")->valueint;
+    // int blue = cJSON_GetObjectItem(root, "blue")->valueint;
+    // ESP_LOGI(REST_TAG, "Light control: red = %d, green = %d, blue = %d", red, green, blue);
+    // cJSON_Delete(root);
+    fclose(f);
+    httpd_resp_sendstr(req, "Configuration saved.");
+    return ESP_OK;
+}
+
+// TBD Almost the same code as for WiFi
+static esp_err_t modbus_get_handler(httpd_req_t *req)
+{
+    // static bool config_loaded = false;
+
+    // if (!config_loaded) {
+        // TBD Kconfig for /conf/emconfig.json
+        const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/modbus.json";
+        ESP_LOGI(REST_TAG, "Opening file %s", file_config);
+        FILE *f = fopen(file_config, "r");
+        if (f == NULL) {
+            ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
+            return ESP_FAIL;
+        }
+        int fseek_result = fseek(f, 0, SEEK_END);
+        ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
+
+        long fsize = ftell(f);
+        ESP_LOGI(REST_TAG, "modbus.json (%ld)\n", fsize);
+        
+        fseek_result = fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+        ESP_LOGI(REST_TAG, "fseek_result: %d\n", fseek_result);
+
+        char *str_config = malloc(fsize + 1);
+        size_t fread_result = fread(str_config, fsize, 1, f);
+        ESP_LOGI(REST_TAG, "fread_result: %u\n", fread_result);
+
+        fclose(f);
+        str_config[fsize] = 0;
+        ESP_LOGI(REST_TAG, "modbus.json: %s\n", str_config);
+    // }
+
+    httpd_resp_set_type(req, "application/json");
+    // cJSON *root = cJSON_CreateObject();
+    // esp_chip_info_t chip_info;
+    // esp_chip_info(&chip_info);
+    // cJSON_AddStringToObject(root, "version", IDF_VER);
+    // cJSON_AddNumberToObject(root, "cores", chip_info.cores);
+    // const char *sys_info = cJSON_Print(root);
+    // httpd_resp_sendstr(req, sys_info);
+    esp_err_t r = httpd_resp_sendstr(req, str_config);
+    ESP_LOGI(REST_TAG, "modbus_get_handler %d: %d\n", __LINE__, r);
+    free(str_config);
+    // free((void *)sys_info);
+    // cJSON_Delete(root);
+    return ESP_OK;
+}
+
+static esp_err_t modbus_post_handler(httpd_req_t *req)
+{
+    int total_len = req->content_len;
+    int cur_len = 0;
+    char *buf = ((rest_server_context_t *)(req->user_ctx))->scratch;
+    int received = 0;
+    if (total_len >= SCRATCH_BUFSIZE) {
+        /* Respond with 500 Internal Server Error */
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "content too long");
+        return ESP_FAIL;
+    }
+    while (cur_len < total_len) {
+        received = httpd_req_recv(req, buf + cur_len, total_len);
+        if (received <= 0) {
+            /* Respond with 500 Internal Server Error */
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
+            return ESP_FAIL;
+        }
+        cur_len += received;
+    }
+    buf[total_len] = '\0';
+
+    // TBD Functions to read/write config in separate module
+    const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/modbus.json";
     FILE *f = fopen(file_config, "w");
     if (f == NULL) {
         ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
@@ -287,21 +387,37 @@ esp_err_t start_rest_server(const char *base_path)
     ESP_LOGI(REST_TAG, "Starting HTTP Server");
     REST_CHECK(httpd_start(&server, &config) == ESP_OK, "Start server failed", err_start);
 
-    httpd_uri_t config_get_uri = {
-        .uri = "/api/v1/config",
+    httpd_uri_t wifi_get_uri = {
+        .uri = "/api/v1/wifi",
         .method = HTTP_GET,
-        .handler = config_get_handler,
+        .handler = wifi_get_handler,
         .user_ctx = rest_context
     };
-    httpd_register_uri_handler(server, &config_get_uri);
+    httpd_register_uri_handler(server, &wifi_get_uri);
 
-    httpd_uri_t config_post_uri = {
-        .uri = "/api/v1/config",
+    httpd_uri_t wifi_post_uri = {
+        .uri = "/api/v1/wifi",
         .method = HTTP_POST,
-        .handler = config_post_handler,
+        .handler = wifi_post_handler,
         .user_ctx = rest_context
     };
-    httpd_register_uri_handler(server, &config_post_uri);
+    httpd_register_uri_handler(server, &wifi_post_uri);
+
+    httpd_uri_t modbus_get_uri = {
+        .uri = "/api/v1/modbus",
+        .method = HTTP_GET,
+        .handler = modbus_get_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &modbus_get_uri);
+
+    httpd_uri_t modbus_post_uri = {
+        .uri = "/api/v1/modbus",
+        .method = HTTP_POST,
+        .handler = modbus_post_handler,
+        .user_ctx = rest_context
+    };
+    httpd_register_uri_handler(server, &modbus_post_uri);
 
     httpd_uri_t restart_post_uri = {
         .uri = "/api/v1/restart",

@@ -1,4 +1,6 @@
---------------------------WEB----------------------------
+- rest_common_get_handler is not correct, if uri is wrong, it tries fetch not existing files!
+- Move to C++17;
+
 --------------------------GENERAL------------------------
 
 - WiFi password shorter than 8 characters 'bricks' the module?!

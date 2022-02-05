@@ -7,6 +7,10 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <string.h>
+#include <errno.h>
+
+// DEBUG
+#include <dirent.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -385,18 +389,34 @@ void wifi_init_softap(void)
 
 static esp_err_t load_config()
 {
-    const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/emconfig.json";
+    // DEBUG
+    const char *storage_root_path = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf";
+    DIR *dir = opendir(storage_root_path);
+    if (dir == NULL) {
+        ESP_LOGE(TAG, "ERROR opening %s, errno=%d\n", storage_root_path, errno);
+        return ESP_FAIL;
+    }
+    else {
+        ESP_LOGI(TAG, "SUCCESS opening %s, errno=%d\n", storage_root_path, errno);
+        struct dirent *d;
+        while ((d = readdir(dir)) != NULL) {
+            printf("%s %d\n", d->d_name, d->d_type);
+        }
+    }
+    // DEBUG
+
+    const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/wifi.json";
     ESP_LOGI(TAG, "Opening file %s", file_config);
     FILE *f = fopen(file_config, "r");
     if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open %s\n", file_config);
+        ESP_LOGE(TAG, "Failed to open %s, errno=%d\n", file_config, errno);
         return ESP_FAIL;
     }
     int fseek_result = fseek(f, 0, SEEK_END);
     ESP_LOGI(TAG, "fseek_result: %d\n", fseek_result);
 
     long fsize = ftell(f);
-    ESP_LOGI(TAG, "emconfig.json (%ld)\n", fsize);
+    ESP_LOGI(TAG, "wifi.json (%ld)\n", fsize);
     
     fseek_result = fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
     ESP_LOGI(TAG, "fseek_result: %d\n", fseek_result);
@@ -407,10 +427,12 @@ static esp_err_t load_config()
 
     fclose(f);
     str_config[fsize] = 0;
-    ESP_LOGI(TAG, "emconfig.json: %s\n", str_config);
+    ESP_LOGI(TAG, "wifi.json: %s\n", str_config);
 
     // TBD Error checking.
-    wifi = cJSON_GetObjectItem(cJSON_Parse(str_config), "wifi");
+    // wifi = cJSON_GetObjectItem(cJSON_Parse(str_config), "wifi");
+    wifi = cJSON_Parse(str_config);
+    
     // int red = cJSON_GetObjectItem(root, "red")->valueint;
     // int green = cJSON_GetObjectItem(root, "green")->valueint;
     // int blue = cJSON_GetObjectItem(root, "blue")->valueint;
@@ -426,8 +448,10 @@ void app_main(void)
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(init_fs());
     ESP_ERROR_CHECK(load_config());
+    
     // TBD In the example_connect() there is waiting for IP addresses, see on_got_ip(), do we need that?
     // ESP_ERROR_CHECK(example_connect());
+    
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     initialise_mdns();
