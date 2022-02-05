@@ -13,10 +13,11 @@
       :type="wifiPasswordVisible ? 'text' : 'password'"
       :append-icon="getWiFiPasswordIcon()"
       @click:append="toggleWiFiPasswordVisible()"
+      :rules="wifiPasswordRules"
     ></v-text-field>
     <div style="padding-top: 10px; float: right">
       <v-btn
-        v-if="wifiSettingsDirty"
+        v-if="wifiSettingsDirty && wifiSettingsValid"
         x-large
         color="success"
         @click="applyWiFiSettings()"
@@ -41,9 +42,16 @@ export default {
   data() {
     return {
       wifiSettingsLoaded: false,
+      wifiSettingsValid: true,
       wifiSettingsDirty: false,
       wifiPasswordVisible: false,
       wifiPasswordIcon: mdiEye,
+      wifiPasswordRules: [
+        (wifiPassword) => {
+          this.wifiSettingsValid = wifiPassword.length >= 8;
+          return this.wifiSettingsValid || "min. 8 characters";
+        },
+      ],
       wifiSettings: {},
     };
   },
