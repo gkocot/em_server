@@ -78,10 +78,4 @@ menu "Example Configuration"
         help
             Specify VFS mount point of SPI Flash or SD card for website and nonvolatile configuration storage.
 
-    config EXAMPLE_WEB_BASE_PATH
-        string "Website base path"
-        default "/storage/www"
-        help
-            Website base path.
-
 endmenu

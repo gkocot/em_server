@@ -141,7 +141,6 @@ CONFIG_EXAMPLE_MDNS_HOST_NAME="esp-home"
 CONFIG_EXAMPLE_WEB_DEPLOY_SDSPI=y
 # CONFIG_EXAMPLE_WEB_DEPLOY_SF is not set
 CONFIG_EXAMPLE_STORAGE_MOUNT_POINT="/sdcard"
-CONFIG_EXAMPLE_WEB_BASE_PATH="/sdcard/www"
 # end of Example Configuration
 
 #
@@ -1254,6 +1253,19 @@ CONFIG_WPA_MBEDTLS_CRYPTO=y
 # CONFIG_WPA_WPS_STRICT is not set
 # CONFIG_WPA_11KV_SUPPORT is not set
 # end of Supplicant
+
+#
+# Server
+#
+CONFIG_WEB_BASE_PATH="/sdcard/www"
+# end of Server
+
+#
+# Settings Provider
+#
+CONFIG_WIFI_SETTINGS_STORAGE="/sdcard/conf/wifi.json"
+CONFIG_MODBUS_SETTINGS_STORAGE="/sdcard/conf/modbus.json"
+# end of Settings Provider
 # end of Component config
 
 #

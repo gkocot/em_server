@@ -1,0 +1,15 @@
+menu "Settings Provider"
+
+    config WIFI_SETTINGS_STORAGE
+        string "WiFi settings storage"
+        default "/storage/conf/wifi.json"
+        help
+            WiFi settings storage.
+
+    config MODBUS_SETTINGS_STORAGE
+        string "Modbus settings storage"
+        default "/storage/conf/modbus.json"
+        help
+            Modbus settings storage.
+
+endmenu

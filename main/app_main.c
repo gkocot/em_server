@@ -396,5 +396,5 @@ void app_main(void)
     netbiosns_init();
     netbiosns_set_name(CONFIG_EXAMPLE_MDNS_HOST_NAME);
     wifi_init();
-    ESP_ERROR_CHECK(start_server(CONFIG_EXAMPLE_WEB_BASE_PATH));
+    ESP_ERROR_CHECK(start_server(CONFIG_WEB_BASE_PATH));
 }

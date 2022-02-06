@@ -1,0 +1,9 @@
+menu "Server"
+
+    config WEB_BASE_PATH
+        string "Website base path"
+        default "/storage/www"
+        help
+            Website base path.
+
+endmenu

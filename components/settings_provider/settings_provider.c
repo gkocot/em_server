@@ -79,11 +79,11 @@ extern void settings_prvider_init()
     // }
     // DEBUG
 
-    if ((wifi_settings_str = load_config(CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/wifi.json")) == NULL) {
+    if ((wifi_settings_str = load_config(CONFIG_WIFI_SETTINGS_STORAGE)) == NULL) {
         ESP_LOGE(TAG, "Loading WiFi settings failed\n");
     };
 
-    if ((modbus_settings_str = load_config(CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/modbus.json")) == NULL) {
+    if ((modbus_settings_str = load_config(CONFIG_MODBUS_SETTINGS_STORAGE)) == NULL) {
         ESP_LOGE(TAG, "Loading Modbus settings failed\n");
     };
 
