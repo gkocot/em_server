@@ -1,6 +1,7 @@
-idf_component_register(SRCS "esp_rest_main.c"
-                            "rest_server.c"
-                    INCLUDE_DIRS ".")
+idf_component_register(
+    SRCS "app_main.c"
+    INCLUDE_DIRS "."
+)
 
 if(CONFIG_EXAMPLE_WEB_DEPLOY_SF)
     set(WEB_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../web")

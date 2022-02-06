@@ -1,3 +1,4 @@
+- Try servine web page from SPI Flash, now it is ~900k in size;
 - rest_common_get_handler is not correct, if uri is wrong, it tries fetch not existing files!
 - Move to C++17;
 

@@ -7,6 +7,14 @@
     "mdns.h": "c",
     "spi_common.h": "c",
     "errno.h": "c",
-    "dirent.h": "c"
+    "dirent.h": "c",
+    "config.h": "c",
+    "settingsprovider.h": "c",
+    "settings_provider.h": "c",
+    "*.inc": "c",
+    "*.tcc": "c",
+    "cstdlib": "c",
+    "memory": "c",
+    "server.h": "c"
   }
 }

@@ -10,7 +10,7 @@
 #include <errno.h>
 
 // DEBUG
-#include <dirent.h>
+// #include <dirent.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -32,7 +32,6 @@
 #include "mdns.h"
 #include "lwip/apps/netbiosns.h"
 #include "protocol_examples_common.h"
-#include "cJSON.h"
 #if CONFIG_EXAMPLE_WEB_DEPLOY_SD
 #include "driver/sdmmc_host.h"
 #endif
@@ -40,6 +39,9 @@
 #include "driver/spi_common.h"
 #include "driver/sdspi_host.h"
 #endif
+
+#include "settings_provider.h"
+#include "server.h"
 
 // Pin mapping
 #if CONFIG_IDF_TARGET_ESP32
@@ -79,13 +81,10 @@
 #define EXAMPLE_ESP_WIFI_CHANNEL   CONFIG_ESP_WIFI_CHANNEL
 #define EXAMPLE_MAX_STA_CONN       CONFIG_ESP_MAX_STA_CONN
 
-static const char *TAG = "example";
+static const char * TAG = "app_main";
 static int s_retry_num = 0;
 
 esp_err_t start_rest_server(const char *base_path);
-
-// TBD Separate module
-static cJSON *wifi; // TBD better name
 
 static void initialise_mdns(void)
 {
@@ -102,7 +101,6 @@ static void initialise_mdns(void)
                                      sizeof(serviceTxtData) / sizeof(serviceTxtData[0])));
 }
 
-// TBD: Probably to be removed
 #if CONFIG_EXAMPLE_WEB_DEPLOY_SEMIHOST
 esp_err_t init_fs(void)
 {
@@ -276,14 +274,14 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
-void wifi_init_softap(void)
+static void wifi_init(void)
 {
     s_wifi_event_group = xEventGroupCreate();
 
-    int wifi_mode = cJSON_GetObjectItem(wifi, "mode")->valueint;
-    char * wifi_ssid = cJSON_GetObjectItem(wifi, "ssid")->valuestring;
+    int wifi_mode = get_wifi_mode();
+    const char * wifi_ssid = get_wifi_ssid();
     int wifi_ssid_len = strlen(wifi_ssid);
-    char * wifi_password = cJSON_GetObjectItem(wifi, "password")->valuestring;
+    const char * wifi_password = get_wifi_password();
     int wifi_password_len = strlen(wifi_ssid);
 
     switch (wifi_mode) {
@@ -314,140 +312,80 @@ void wifi_init_softap(void)
     switch (wifi_mode) {
         case WIFI_MODE_AP:
         {
-        wifi_config_t wifi_config = {
-            .ap = {
-                .ssid_len = wifi_ssid_len,
-                .channel = EXAMPLE_ESP_WIFI_CHANNEL, // TBD add to configuration
-                .max_connection = EXAMPLE_MAX_STA_CONN,  // TBD add to configuration
-                .authmode = WIFI_AUTH_WPA_WPA2_PSK  // TBD add to configuration
-            },
-        };
-        strncpy((char *)wifi_config.ap.ssid, wifi_ssid, 32);
-        wifi_config.ap.ssid_len = wifi_ssid_len;
-        strncpy((char *)wifi_config.ap.password, wifi_password, 64);
+            wifi_config_t wifi_config = {
+                .ap = {
+                    .ssid_len = wifi_ssid_len,
+                    .channel = EXAMPLE_ESP_WIFI_CHANNEL, // TBD add to configuration
+                    .max_connection = EXAMPLE_MAX_STA_CONN,  // TBD add to configuration
+                    .authmode = WIFI_AUTH_WPA_WPA2_PSK  // TBD add to configuration
+                },
+            };
+            strncpy((char *)wifi_config.ap.ssid, wifi_ssid, 32);
+            wifi_config.ap.ssid_len = wifi_ssid_len;
+            strncpy((char *)wifi_config.ap.password, wifi_password, 64);
 
-        // if (strlen(EXAMPLE_ESP_WIFI_PASS) == 0) {
-        if (wifi_password_len == 0) {
-            wifi_config.ap.authmode = WIFI_AUTH_OPEN;
-        }
-        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-        ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
-            ESP_ERROR_CHECK(esp_wifi_start());
-
+            if (wifi_password_len == 0) {
+                wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+            }
+            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+            ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+                ESP_ERROR_CHECK(esp_wifi_start());
         }
         break;
 
         case WIFI_MODE_STA:
         {
-        wifi_config_t wifi_config = {
-            .sta = {
-                .threshold.authmode = WIFI_AUTH_WPA2_PSK,
-                .pmf_cfg = {
-                    .capable = true,
-                    .required = false
+            wifi_config_t wifi_config = {
+                .sta = {
+                    .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+                    .pmf_cfg = {
+                        .capable = true,
+                        .required = false
+                    },
                 },
-            },
-        };
-        strncpy((char *)wifi_config.sta.ssid, wifi_ssid, 32);
-        strncpy((char *)wifi_config.sta.password, wifi_password, 64);
-        ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-        ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
-        ESP_ERROR_CHECK(esp_wifi_start());
+            };
+            strncpy((char *)wifi_config.sta.ssid, wifi_ssid, 32);
+            strncpy((char *)wifi_config.sta.password, wifi_password, 64);
+            ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+            ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+            ESP_ERROR_CHECK(esp_wifi_start());
 
-        /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
-        * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */
-        EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
-                WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
-                pdFALSE,
-                pdFALSE,
-                portMAX_DELAY);
+            /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
+            * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */
+            EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
+                    WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
+                    pdFALSE,
+                    pdFALSE,
+                    portMAX_DELAY);
 
-        /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
-        * happened. */
-        if (bits & WIFI_CONNECTED_BIT) {
-            ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
-                    EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
-        } else if (bits & WIFI_FAIL_BIT) {
-            ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
-                    EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
-        } else {
-            ESP_LOGE(TAG, "UNEXPECTED EVENT");
-        }
+            /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
+            * happened. */
+            if (bits & WIFI_CONNECTED_BIT) {
+                ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
+                        EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+            } else if (bits & WIFI_FAIL_BIT) {
+                ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
+                        EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+            } else {
+                ESP_LOGE(TAG, "UNEXPECTED EVENT");
+            }
         }
 
         break;
     }
 
-
-    // ESP_LOGI(TAG, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
-    //          EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS, EXAMPLE_ESP_WIFI_CHANNEL);
-    ESP_LOGI(TAG, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
-        cJSON_GetObjectItem(wifi, "ssid")->valuestring,
-        cJSON_GetObjectItem(wifi, "password")->valuestring,
+    // TBD: DOn't print credentials!
+    ESP_LOGI(TAG, "wifi_init() finished. SSID:%s password:%s channel:%d",
+        wifi_ssid,
+        wifi_password,
         EXAMPLE_ESP_WIFI_CHANNEL);
-}
-
-static esp_err_t load_config()
-{
-    // DEBUG
-    const char *storage_root_path = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf";
-    DIR *dir = opendir(storage_root_path);
-    if (dir == NULL) {
-        ESP_LOGE(TAG, "ERROR opening %s, errno=%d\n", storage_root_path, errno);
-        return ESP_FAIL;
-    }
-    else {
-        ESP_LOGI(TAG, "SUCCESS opening %s, errno=%d\n", storage_root_path, errno);
-        struct dirent *d;
-        while ((d = readdir(dir)) != NULL) {
-            printf("%s %d\n", d->d_name, d->d_type);
-        }
-    }
-    // DEBUG
-
-    const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/wifi.json";
-    ESP_LOGI(TAG, "Opening file %s", file_config);
-    FILE *f = fopen(file_config, "r");
-    if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open %s, errno=%d\n", file_config, errno);
-        return ESP_FAIL;
-    }
-    int fseek_result = fseek(f, 0, SEEK_END);
-    ESP_LOGI(TAG, "fseek_result: %d\n", fseek_result);
-
-    long fsize = ftell(f);
-    ESP_LOGI(TAG, "wifi.json (%ld)\n", fsize);
-    
-    fseek_result = fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
-    ESP_LOGI(TAG, "fseek_result: %d\n", fseek_result);
-
-    char *str_config = malloc(fsize + 1);
-    size_t fread_result = fread(str_config, fsize, 1, f);
-    ESP_LOGI(TAG, "fread_result: %u\n", fread_result);
-
-    fclose(f);
-    str_config[fsize] = 0;
-    ESP_LOGI(TAG, "wifi.json: %s\n", str_config);
-
-    // TBD Error checking.
-    // wifi = cJSON_GetObjectItem(cJSON_Parse(str_config), "wifi");
-    wifi = cJSON_Parse(str_config);
-    
-    // int red = cJSON_GetObjectItem(root, "red")->valueint;
-    // int green = cJSON_GetObjectItem(root, "green")->valueint;
-    // int blue = cJSON_GetObjectItem(root, "blue")->valueint;
-    // ESP_LOGI(TAG, "Light control: red = %d, green = %d, blue = %d", red, green, blue);
-    // cJSON_Delete(root);
-
-    free(str_config);
-    return ESP_OK;
 }
 
 void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(init_fs());
-    ESP_ERROR_CHECK(load_config());
+    settings_prvider_init();
     
     // TBD In the example_connect() there is waiting for IP addresses, see on_got_ip(), do we need that?
     // ESP_ERROR_CHECK(example_connect());
@@ -457,6 +395,6 @@ void app_main(void)
     initialise_mdns();
     netbiosns_init();
     netbiosns_set_name(CONFIG_EXAMPLE_MDNS_HOST_NAME);
-    wifi_init_softap();
-    ESP_ERROR_CHECK(start_rest_server(CONFIG_EXAMPLE_WEB_BASE_PATH));
+    wifi_init();
+    ESP_ERROR_CHECK(start_server(CONFIG_EXAMPLE_WEB_BASE_PATH));
 }
