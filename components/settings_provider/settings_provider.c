@@ -5,6 +5,9 @@
 #include "cJSON.h"
 #include "settings_provider.h"
 
+// DEBUG
+#include <dirent.h>
+
 static const char * TAG = "settings_provider";
 
 static char * wifi_settings_str = NULL;
@@ -84,11 +87,11 @@ static esp_err_t save_config(const char * path, char * config, size_t len)
 extern void settings_provider_init()
 {
     // DEBUG
-    // const char *storage_root_path = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf";
+    // const char *storage_root_path = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/";
     // DIR *dir = opendir(storage_root_path);
     // if (dir == NULL) {
     //     ESP_LOGE(TAG, "ERROR opening %s, errno=%d\n", storage_root_path, errno);
-    //     return ESP_FAIL;
+    //     // return ESP_FAIL;
     // }
     // else {
     //     ESP_LOGI(TAG, "SUCCESS opening %s, errno=%d\n", storage_root_path, errno);
