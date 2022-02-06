@@ -12,7 +12,7 @@ static char * modbus_settings_str = NULL;
 static cJSON * wifi_cJSON = NULL;
 // static cJSON * modbus_cJSON;
 
-char * load_config(const char * path)
+static char * load_config(const char * path)
 {
     FILE * f = fopen(path, "r");
     if (f == NULL) {
@@ -37,31 +37,51 @@ char * load_config(const char * path)
         goto load_config_error_close_file;
     }
 
-    char * config_str;
-    if ((config_str = malloc(size + 1)) == NULL) {
+    char * config;
+    if ((config = malloc(size + 1)) == NULL) {
         ESP_LOGE(TAG, "malloc() failed\n");
         goto load_config_error_close_file;
     }
 
     size_t fread_result;
-    if ((fread_result = fread(config_str, size, 1, f)) != 1) {
+    if ((fread_result = fread(config, size, 1, f)) != 1) {
         ESP_LOGE(TAG, "fread() failed\n");
         goto load_config_error_free;
     }
 
     fclose(f);
-    config_str[size] = 0;
-    return config_str;
+    config[size] = 0;
+    return config;
 
 load_config_error_free:
-    free(config_str);
+    free(config);
 
 load_config_error_close_file:
     fclose(f);
     return NULL;
 }
 
-extern void settings_prvider_init()
+static esp_err_t save_config(const char * path, char * config, size_t len)
+{
+    FILE * f = fopen(path, "w");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "fopen(%s, \"w\") failed, errno %d\n", path, errno);
+        return ESP_FAIL;
+    }
+
+
+    if (fwrite(config, len, 1, f) != 1) {
+        ESP_LOGE(TAG, "fwrite() failed\n");
+        fclose(f);
+        return ESP_FAIL;
+    }
+
+    fclose(f);
+    return ESP_OK;
+}
+
+
+extern void settings_provider_init()
 {
     // DEBUG
     // const char *storage_root_path = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf";
@@ -93,7 +113,7 @@ extern void settings_prvider_init()
     // modbus_cJSON = cJSON_Parse(modbus_settings_str);
 }
 
-extern const char * get_wifi_settings_str()
+extern const char * get_wifi_settings()
 {
     if (wifi_settings_str != NULL) {
         return wifi_settings_str;
@@ -101,6 +121,24 @@ extern const char * get_wifi_settings_str()
     else {
         return "{}"; // TBD: Hardcoded default settings.
     }
+}
+
+extern esp_err_t set_wifi_settings(char * settings, size_t len)
+{
+    if (save_config(CONFIG_WIFI_SETTINGS_STORAGE, settings, len) != ESP_OK) {
+        ESP_LOGE(TAG, "Saving WiFi settings failed\n");
+        return ESP_FAIL;
+    };
+
+    char * new_wifi_settings_str = NULL;
+    if ((new_wifi_settings_str = load_config(CONFIG_WIFI_SETTINGS_STORAGE)) == NULL) {
+        ESP_LOGE(TAG, "Reloading WiFi settings failed\n");
+        return ESP_FAIL;
+    };
+
+    free(wifi_settings_str);
+    wifi_settings_str = new_wifi_settings_str;
+    return ESP_OK;
 }
 
 extern int get_wifi_mode()
@@ -118,7 +156,7 @@ extern const char * get_wifi_password()
     return cJSON_GetObjectItem(wifi_cJSON, "password")->valuestring;
 }
 
-extern const char * get_modbus_settings_str()
+extern const char * get_modbus_settings()
 {
     if (modbus_settings_str != NULL) {
         return modbus_settings_str;
@@ -128,7 +166,25 @@ extern const char * get_modbus_settings_str()
     }
 }
 
-extern void settings_prvider_free()
+extern esp_err_t set_modbus_settings(char * settings, size_t len)
+{
+    if (save_config(CONFIG_MODBUS_SETTINGS_STORAGE, settings, len) != ESP_OK) {
+        ESP_LOGE(TAG, "Saving Modbus settings failed\n");
+        return ESP_FAIL;
+    };
+
+    char * new_modbus_settings_str = NULL;
+    if ((new_modbus_settings_str = load_config(CONFIG_MODBUS_SETTINGS_STORAGE)) == NULL) {
+        ESP_LOGE(TAG, "Reloading Modbus settings failed\n");
+        return ESP_FAIL;
+    };
+
+    free(modbus_settings_str);
+    modbus_settings_str = new_modbus_settings_str;
+    return ESP_OK;
+}
+
+extern void settings_provider_free()
 {
     free(wifi_settings_str);
     wifi_settings_str = NULL;

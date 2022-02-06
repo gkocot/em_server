@@ -15,13 +15,13 @@
 #include "cJSON.h"
 #include "settings_provider.h"
 
-static const char *REST_TAG = "esp-rest";
+static const char * TAG = "server";
 #define REST_CHECK(a, str, goto_tag, ...)                                              \
     do                                                                                 \
     {                                                                                  \
         if (!(a))                                                                      \
         {                                                                              \
-            ESP_LOGE(REST_TAG, "%s(%d): " str, __FUNCTION__, __LINE__, ##__VA_ARGS__); \
+            ESP_LOGE(TAG, "%s(%d): " str, __FUNCTION__, __LINE__, ##__VA_ARGS__); \
             goto goto_tag;                                                             \
         }                                                                              \
     } while (0)
@@ -70,7 +70,7 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req)
     }
     int fd = open(filepath, O_RDONLY, 0);
     if (fd == -1) {
-        ESP_LOGE(REST_TAG, "Failed to open file : %s", filepath);
+        ESP_LOGE(TAG, "Failed to open file : %s", filepath);
         /* Respond with 500 Internal Server Error */
         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to read existing file");
         return ESP_FAIL;
@@ -84,12 +84,12 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req)
         /* Read file in chunks into the scratch buffer */
         read_bytes = read(fd, chunk, SCRATCH_BUFSIZE);
         if (read_bytes == -1) {
-            ESP_LOGE(REST_TAG, "Failed to read file : %s", filepath);
+            ESP_LOGE(TAG, "Failed to read file : %s", filepath);
         } else if (read_bytes > 0) {
             /* Send the buffer contents as HTTP response chunk */
             if (httpd_resp_send_chunk(req, chunk, read_bytes) != ESP_OK) {
                 close(fd);
-                ESP_LOGE(REST_TAG, "File sending failed!");
+                ESP_LOGE(TAG, "File sending failed!");
                 /* Abort sending file */
                 httpd_resp_sendstr_chunk(req, NULL);
                 /* Respond with 500 Internal Server Error */
@@ -100,7 +100,7 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req)
     } while (read_bytes > 0);
     /* Close file after sending complete */
     close(fd);
-    ESP_LOGI(REST_TAG, "File sending complete");
+    ESP_LOGI(TAG, "File sending complete");
     /* Respond with an empty chunk to signal HTTP response completion */
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
@@ -109,117 +109,72 @@ static esp_err_t rest_common_get_handler(httpd_req_t *req)
 static esp_err_t wifi_get_handler(httpd_req_t * req)
 {
     httpd_resp_set_type(req, "application/json");
-    return httpd_resp_sendstr(req, get_wifi_settings_str());
+    return httpd_resp_sendstr(req, get_wifi_settings());
 }
 
-static esp_err_t wifi_post_handler(httpd_req_t *req)
+// TBD: We could receive larger request by using our own buffer not the scratch.
+static char * httpd_req_get_content_buf(httpd_req_t * req)
 {
-    // int total_len = req->content_len;
-    // int cur_len = 0;
-    // char *buf = ((rest_server_context_t *)(req->user_ctx))->scratch;
-    // int received = 0;
-    // if (total_len >= SCRATCH_BUFSIZE) {
-    //     /* Respond with 500 Internal Server Error */
-    //     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "content too long");
-    //     return ESP_FAIL;
-    // }
-    // while (cur_len < total_len) {
-    //     received = httpd_req_recv(req, buf + cur_len, total_len);
-    //     if (received <= 0) {
-    //         /* Respond with 500 Internal Server Error */
-    //         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
-    //         return ESP_FAIL;
-    //     }
-    //     cur_len += received;
-    // }
-    // buf[total_len] = '\0';
+    int total_len = req->content_len;
+    int cur_len = 0;
+    char * buf = ((rest_server_context_t *)(req->user_ctx))->scratch;
+    int received = 0;
+    if (total_len >= SCRATCH_BUFSIZE) {
+        /* Respond with 500 Internal Server Error */
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Content too long");
+        return NULL;
+    }
+    while (cur_len < total_len) {
+        received = httpd_req_recv(req, buf + cur_len, total_len);
+        if (received <= 0) {
+            /* Respond with 500 Internal Server Error */
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
+            return NULL;
+        }
+        cur_len += received;
+    }
+    buf[total_len] = '\0';
+    return buf;
+}
 
-    // // TBD Functions to read/write config in separate module
-    // const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/wifi.json";
-    // FILE *f = fopen(file_config, "w");
-    // if (f == NULL) {
-    //     ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
-    //     // TBD there is dedicated function to send error 500 with no message.
-    //     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save configuration");
-    //     return ESP_FAIL;
-    // }
+static esp_err_t wifi_post_handler(httpd_req_t * req)
+{
+    char * buf;
+    if((buf = httpd_req_get_content_buf(req)) == NULL) {
+        return ESP_FAIL;
+    }
+ 
+    if (set_wifi_settings(buf, req->content_len) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to save WiFi configuration\n");
+        // TBD There is dedicated function to send error 500 with no message.
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save WiFi configuration");
+        return ESP_FAIL;
+    }
 
-    // size_t fwrite_result = fwrite(buf, total_len, 1, f);
-    // if (fwrite_result != 1) {
-    //     // ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
-    //     fclose(f);
-    //     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save configuration");
-    //     return ESP_FAIL;
-    // }
-
-    // // TBD Remove.
-    // // cJSON *root = cJSON_Parse(buf);
-    // // int red = cJSON_GetObjectItem(root, "red")->valueint;
-    // // int green = cJSON_GetObjectItem(root, "green")->valueint;
-    // // int blue = cJSON_GetObjectItem(root, "blue")->valueint;
-    // // ESP_LOGI(REST_TAG, "Light control: red = %d, green = %d, blue = %d", red, green, blue);
-    // // cJSON_Delete(root);
-    // fclose(f);
-    // httpd_resp_sendstr(req, "Configuration saved.");
-    return ESP_OK;
+    return httpd_resp_sendstr(req, "WiFI configuration saved.");
 }
 
 static esp_err_t modbus_get_handler(httpd_req_t * req)
 {
     httpd_resp_set_type(req, "application/json");
-    return httpd_resp_sendstr(req, get_modbus_settings_str());
+    return httpd_resp_sendstr(req, get_modbus_settings());
 }
 
-static esp_err_t modbus_post_handler(httpd_req_t *req)
+static esp_err_t modbus_post_handler(httpd_req_t * req)
 {
-    // int total_len = req->content_len;
-    // int cur_len = 0;
-    // char *buf = ((rest_server_context_t *)(req->user_ctx))->scratch;
-    // int received = 0;
-    // if (total_len >= SCRATCH_BUFSIZE) {
-    //     /* Respond with 500 Internal Server Error */
-    //     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "content too long");
-    //     return ESP_FAIL;
-    // }
-    // while (cur_len < total_len) {
-    //     received = httpd_req_recv(req, buf + cur_len, total_len);
-    //     if (received <= 0) {
-    //         /* Respond with 500 Internal Server Error */
-    //         httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
-    //         return ESP_FAIL;
-    //     }
-    //     cur_len += received;
-    // }
-    // buf[total_len] = '\0';
+    char * buf;
+    if((buf = httpd_req_get_content_buf(req)) == NULL) {
+        return ESP_FAIL;
+    }
+    
+    if (set_modbus_settings(buf, req->content_len) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to save Modbus configuration\n");
+        // TBD There is dedicated function to send error 500 with no message.
+        httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save Modbus configuration");
+        return ESP_FAIL;
+    }
 
-    // // TBD Functions to read/write config in separate module
-    // const char *file_config = CONFIG_EXAMPLE_STORAGE_MOUNT_POINT"/conf/modbus.json";
-    // FILE *f = fopen(file_config, "w");
-    // if (f == NULL) {
-    //     ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
-    //     // TBD there is dedicated function to send error 500 with no message.
-    //     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save configuration");
-    //     return ESP_FAIL;
-    // }
-
-    // size_t fwrite_result = fwrite(buf, total_len, 1, f);
-    // if (fwrite_result != 1) {
-    //     // ESP_LOGE(REST_TAG, "Failed to open %s\n", file_config);
-    //     fclose(f);
-    //     httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to save configuration");
-    //     return ESP_FAIL;
-    // }
-
-    // // TBD Remove.
-    // // cJSON *root = cJSON_Parse(buf);
-    // // int red = cJSON_GetObjectItem(root, "red")->valueint;
-    // // int green = cJSON_GetObjectItem(root, "green")->valueint;
-    // // int blue = cJSON_GetObjectItem(root, "blue")->valueint;
-    // // ESP_LOGI(REST_TAG, "Light control: red = %d, green = %d, blue = %d", red, green, blue);
-    // // cJSON_Delete(root);
-    // fclose(f);
-    // httpd_resp_sendstr(req, "Configuration saved.");
-    return ESP_OK;
+    return httpd_resp_sendstr(req, "Modbus configuration saved.");
 }
 
 // TBD: Probably some notification to other app components required to provide graceful shutdown!
@@ -257,7 +212,7 @@ extern esp_err_t start_server(const char * base_path)
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.uri_match_fn = httpd_uri_match_wildcard;
 
-    ESP_LOGI(REST_TAG, "Starting HTTP Server");
+    ESP_LOGI(TAG, "Starting HTTP Server");
     REST_CHECK(httpd_start(&server, &config) == ESP_OK, "Start server failed", err_start);
 
     httpd_uri_t wifi_get_uri = {

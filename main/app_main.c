@@ -385,7 +385,7 @@ void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(init_fs());
-    settings_prvider_init();
+    settings_provider_init();
     
     // TBD In the example_connect() there is waiting for IP addresses, see on_got_ip(), do we need that?
     // ESP_ERROR_CHECK(example_connect());

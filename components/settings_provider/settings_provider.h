@@ -1,11 +1,15 @@
 #pragma once
 
-extern void settings_prvider_init();
-extern void settings_prvider_free();
+#include "esp_err.h"
 
-extern const char * get_wifi_settings_str();
+extern void settings_provider_init();
+extern void settings_provider_free();
+
+extern const char * get_wifi_settings();
+extern esp_err_t set_wifi_settings(char * settings, size_t len);
 extern int get_wifi_mode();
 extern const char * get_wifi_ssid();
 extern const char * get_wifi_password();
 
-extern const char * get_modbus_settings_str();
+extern const char * get_modbus_settings();
+extern esp_err_t set_modbus_settings(char * settings, size_t len);
